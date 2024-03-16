@@ -12,6 +12,10 @@ app.use(express.urlencoded({ extended: false }));
 //database
 require('./db')();
 
+app.get("/",(req,res)=>{
+    return res.status(200).send({msg:"Welcome to NextJobHub"})
+});
+
 //middleware
 const errorMiddleware = require("./middleware/errorMiddleware");
 
