@@ -50,7 +50,7 @@ UserSchema.pre('save', async function(next) {
 
 // Static method to generate JWT token
 UserSchema.statics.generateToken = function(user) {
-  return jwt.sign({ userId: user._id }, process.env.secret_key, { expiresIn: '1h' }); // Replace 'your-secret-key' with your actual secret key
+  return jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' }); // Replace 'your-secret-key' with your actual secret key
 };
 
 module.exports = mongoose.model('User', UserSchema);
