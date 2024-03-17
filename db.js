@@ -1,7 +1,7 @@
 // MongoDB Connection
 const mongoose = require('mongoose');
 
-module.exports=function(){mongoose.connect('mongodb+srv://nextjobhub:nextjobhub@nextjobhub.o87poyv.mongodb.net/', {
+module.exports=function(){mongoose.connect(process.env.DATABASE, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
