@@ -8,7 +8,10 @@ const app = express();
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+const cors = require('cors');
 
+// Enable CORS for all routes
+app.use(cors());
 //database
 require('./db')();
 
