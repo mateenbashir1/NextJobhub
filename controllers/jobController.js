@@ -227,6 +227,20 @@ const deleteJob = async (req, res) => {
     }
   };
 
+  const getSuggestedJobs = async (req, res) => {
+    try {
+      // Extract user skills from the request
+      const userSkills = req.body.skills; // Assuming skills are sent in the request body
+
+      // Query for jobs that require any of the user's skills
+      const suggestedJobs = await Job.find({ skills: { $in: userSkills } });
+
+      res.status(200).json({ suggestedJobs });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch suggested jobs', error: error.message });
+    }
+  };
+
 
   module.exports = {
     getJobs,
@@ -235,5 +249,6 @@ const deleteJob = async (req, res) => {
     updateJob,
     filterJobsForSingleUser,
     getAllJobsWithFilters,
-    deleteJob
+    deleteJob,
+    getSuggestedJobs
   };

@@ -6,6 +6,10 @@ const jobController = require('../controllers/jobController');
 const multerConfig = require('../middleware/jobsmulter');
 
 
+// Route to handle getting suggested jobs
+router.get('/suggested', jobController.getSuggestedJobs);
+
+
 // GET request to fetch user jobs
 router.get('/', jobController.getJobs);
 

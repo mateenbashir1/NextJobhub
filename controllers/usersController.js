@@ -1,6 +1,19 @@
 
 const User = require('../models/User');
 
+
+
+// Controller function to get all users
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password'); // Exclude the 'password' field
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // Controller function to create a user
 const createUser = async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -45,7 +58,7 @@ const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    await user.remove();
+    await user.deleteOne();
     res.json({ message: 'User deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -74,5 +87,6 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  getUser
+  getUser,
+  getAllUsers
 };

@@ -9,6 +9,9 @@ const multerConfig = require('../middleware/usermulter');
 // Create a user
 router.post('/', userController.createUser);
 
+// get users
+router.get('/',userController.getAllUsers);
+
 // Update a user
 router.patch('/:id', authMiddleware, multerConfig.single('profileImg'), userController.updateUser);
 
