@@ -7,7 +7,7 @@ const multerConfig = require('../middleware/jobsmulter');
 
 
 // Route to handle getting suggested jobs
-router.get('/suggested', jobController.getSuggestedJobs);
+router.get('/suggestedjobs',authMiddleware, jobController.getSuggestedJobs);
 
 
 // GET request to fetch user jobs

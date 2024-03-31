@@ -4,6 +4,7 @@ const User = require('../models/User');
 const getAllCompanies = async (req, res, next) => {
     try {
         const companies = await Companie.find();
+        console.log(companies)
         res.json(companies);
     } catch (error) {
         next(error);
@@ -37,6 +38,7 @@ const createCompany = async (req, res, next) => {
             name: req.body.name,
             description: req.body.description,
             industry: req.body.industry,
+            address:req.body.address,
             website: req.body.website,
             SocialMediaLinks: req.body.SocialMediaLinks,
             UserId: req.user.userId

@@ -6,7 +6,7 @@ const User = require('../models/User');
 // Controller function to get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '-password'); // Exclude the 'password' field
+    const users = await User.find({}, '-password');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -52,18 +52,26 @@ const updateUser = async (req, res) => {
 
 // Controller function to delete a user
 const deleteUser = async (req, res) => {
-  const { userId } = req.user;
+  const { userId } = req.params;
+  const requesterId = req.user.userId; // Corrected property name
   try {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Check if the user is a super admin or is deleting their own account
+    if (!req.isSuperAdmin && userId !== requesterId) {
+      return res.status(403).json({ message: 'Unauthorized: You can only delete your own account' });
+    }
+
     await user.deleteOne();
     res.json({ message: 'User deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // Middleware function to get a user by ID

@@ -10,11 +10,14 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    // match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ // Regular expression for email validation
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    // minlength: 6, // Minimum password length
+    // maxlength: 20 // Maximum password length
   },
   role: {
     type: String,
@@ -47,10 +50,10 @@ UserSchema.pre('save', async function(next) {
     return next(error);
   }
 });
+const token =
 
-// Static method to generate JWT token
 UserSchema.statics.generateToken = function(user) {
-  return jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' }); // Replace 'your-secret-key' with your actual secret key
+  return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '1h' });; // Replace 'your-secret-key' with your actual secret key
 };
 
 module.exports = mongoose.model('User', UserSchema);

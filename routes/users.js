@@ -16,7 +16,7 @@ router.get('/',userController.getAllUsers);
 router.patch('/:id', authMiddleware, multerConfig.single('profileImg'), userController.updateUser);
 
 // Delete a user
-router.delete('/:id', authMiddleware, userController.deleteUser);
+router.delete('/:userId', authMiddleware, userController.deleteUser);
 
 // Middleware function to get a user by ID
 router.param('id', userController.getUser);

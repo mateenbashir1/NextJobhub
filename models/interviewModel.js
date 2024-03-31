@@ -1,15 +1,32 @@
-// models/Interview.js
 const mongoose = require('mongoose');
 
-
-
 const interviewSchema = new mongoose.Schema({
-    dateScheduled: { type: Date, required: true },
-    interviewerID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    intervieweeID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['Scheduled', 'Completed', 'Cancelled'], default: 'Scheduled' },
-    feedback: { type: String }
+  jobPosterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  applyJobId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ApplyJob',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'scheduled', 'completed'],
+    default: 'pending'
+  },
+  scheduledDate: {
+    type: Date
+  },
+  notes: {
+    type: String
+  }
+}, { timestamps: true });
 
-  });
-
-  module.exports = mongoose.model('interview', interviewSchema);
+module.exports = mongoose.model('Interview', interviewSchema);

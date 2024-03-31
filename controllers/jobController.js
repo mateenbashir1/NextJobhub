@@ -90,38 +90,39 @@ const createJob = async (req, res) => {
 
 // Controller function to update a job
 const updateJob = async (req, res) => {
-    const jobId = req.params.id;
-    const { title, skills, city, salary, description } = req.body;
+  const jobId = req.params.id;
+  const { title, skills, city, salary, description } = req.body;
 
-    try {
-      // Check if the job post exists
-      const job = await Job.findOne({ _id: jobId });
-      if (!job) {
-        return res.status(404).json({ message: 'Job not found' });
-      }
-
-      // Check if the user is authorized to update the job post
-      if (req.user.userId !== job.UserId.toString()) {
-        return res.status(403).json({ message: 'Unauthorized to update this job post' });
-      }
-
-      // Update job details
-      const updatedJob = await Job.findOneAndUpdate({ _id: jobId }, req.body, {
-        new: true,
-        runValidators: true,
-      });
-
-      // Check if a new image was uploaded and update jobImg field
-      if (req.file) {
-        updatedJob.jobImg = req.file.filename;
-        await updatedJob.save();
-      }
-
-      res.json(updatedJob);
-    } catch (err) {
-      res.status(400).json({ message: err.message });
+  try {
+    // Check if the job post exists
+    const job = await Job.findOne({ _id: jobId });
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
     }
-  };
+
+    // Check if the user is authorized to update the job post
+    if (!req.isSuperAdmin && req.user.userId !== job.UserId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized to update this job post' });
+    }
+
+    // Update job details
+    const updatedJob = await Job.findOneAndUpdate({ _id: jobId }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Check if a new image was uploaded and update jobImg field
+    if (req.file) {
+      updatedJob.jobImg = req.file.filename;
+      await updatedJob.save();
+    }
+
+    res.json(updatedJob);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 
   // Controller function to fetch jobs for a single user with filters
 const filterJobsForSingleUser = async (req, res) => {
@@ -207,38 +208,67 @@ const getAllJobsWithFilters = async (req, res) => {
   };
 
 // Controller function to delete a job post
+// const deleteJob = async (req, res) => {
+//     const jobId = req.params.id;
+//     try {
+//       // Check if the job post exists
+//       const job = await Job.findOne({ _id: jobId });
+//       if (!job) {
+//         return res.status(404).json({ message: 'Job not found' });
+//       }
+//       // Check if the user is authorized to delete the job post
+//       if (req.user.userId !== job.UserId.toString()) {
+//         return res.status(403).json({ message: 'Unauthorized to delete this job post' });
+//       }
+
+//       await Job.deleteOne({ _id: jobId });
+//       res.json({ message: 'Job deleted successfully' });
+//     } catch (err) {
+//       res.status(400).json({ message: err.message });
+//     }
+//   };
+
+
+
+// Controller function to delete a job post
+
+
 const deleteJob = async (req, res) => {
-    const jobId = req.params.id;
-    try {
-      // Check if the job post exists
-      const job = await Job.findOne({ _id: jobId });
-      if (!job) {
-        return res.status(404).json({ message: 'Job not found' });
-      }
-      // Check if the user is authorized to delete the job post
-      if (req.user.userId !== job.UserId.toString()) {
-        return res.status(403).json({ message: 'Unauthorized to delete this job post' });
-      }
-
-      await Job.deleteOne({ _id: jobId });
-      res.json({ message: 'Job deleted successfully' });
-    } catch (err) {
-      res.status(400).json({ message: err.message });
+  const jobId = req.params.id;
+  try {
+    // Check if the job post exists
+    const job = await Job.findOne({ _id: jobId });
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
     }
-  };
 
-  const getSuggestedJobs = async (req, res) => {
-    try {
-      // Extract user skills from the request
-      const userSkills = req.body.skills; // Assuming skills are sent in the request body
-
-      // Query for jobs that require any of the user's skills
-      const suggestedJobs = await Job.find({ skills: { $in: userSkills } });
-
-      res.status(200).json({ suggestedJobs });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch suggested jobs', error: error.message });
+    // Check if the user is authorized to delete the job post
+    if (!req.isSuperAdmin && req.user.userId !== job.UserId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized to delete this job post' });
     }
+
+    await Job.deleteOne({ _id: jobId });
+    res.json({ message: 'Job deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
+
+
+const getSuggestedJobs = async (req, res) => {
+  try {
+    // Extract user skills from the request (assuming it's available in req.user.skills)
+    const userSkills = req.user.skills; // Assuming user skills are stored in req.user.skills
+        console.log(userSkills)
+    // Query for jobs that require any of the user's skills
+    const suggestedJobs = await Job.find({ skills: { $in: userSkills } });
+
+    res.status(200).json({ suggestedJobs });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch suggested jobs', error: error.message });
+  }
   };
 
 
