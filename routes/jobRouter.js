@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const jobController = require('../controllers/jobController');
-const multerConfig = require('../middleware/jobsmulter');
 
 
 // Route to handle getting suggested jobs
@@ -17,7 +16,7 @@ router.get('/', jobController.getJobs);
 router.get('/get-job', authMiddleware, jobController.getUserJobs);
 
 
-router.post('/', authMiddleware, multerConfig.single('jobImg'), jobController.createJob);
+router.post('/', authMiddleware,  jobController.createJob);
 
 // Get jobs for a single user with filters
 router.get('/filterjobsSingalUser', authMiddleware, jobController.filterJobsForSingleUser);
@@ -28,7 +27,7 @@ router.get('/allJobsFilter', jobController.getAllJobsWithFilters);
 
 
 // Update a job
-router.patch('/:id', authMiddleware, multerConfig.single('jobImg'), jobController.updateJob);
+router.patch('/:id', authMiddleware,  jobController.updateJob);
 
 
 // Delete a job post

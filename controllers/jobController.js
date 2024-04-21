@@ -75,11 +75,6 @@ const createJob = async (req, res) => {
         UserId: req.user.userId
       });
 
-      // Check if a new image was uploaded and update jobImg field
-      if (req.file) {
-        job.jobImg = req.file.filename;
-      }
-
       // Save the job
       const newJob = await job.save();
       res.status(201).json(newJob);
@@ -91,7 +86,7 @@ const createJob = async (req, res) => {
 // Controller function to update a job
 const updateJob = async (req, res) => {
   const jobId = req.params.id;
-  const { title, skills, city, salary, description } = req.body;
+  const { title, skills, city, salary, description,education } = req.body;
 
   try {
     // Check if the job post exists

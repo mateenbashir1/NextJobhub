@@ -28,7 +28,7 @@ app.get("/",(req,res)=>{
 // **********************************************************************************************************
 
 
-app.use('/api/cv',require('./routes/cVRoutes'));
+// app.use('/api/cv',require('./routes/cVRoutes'));
 
 
 

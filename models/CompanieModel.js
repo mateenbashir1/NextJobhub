@@ -30,6 +30,10 @@ const CompanieSchema = new mongoose.Schema({
   UserId: {
      type: mongoose.Schema.Types.ObjectId, ref: 'User',
  },
+ logo:{
+  type:String,
+  required:true
+ }
 },
 { timestamps: true }
 );

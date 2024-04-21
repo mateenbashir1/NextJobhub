@@ -1,7 +1,7 @@
 const ApplyJob = require('../models/ApplyJobModel');
 const Company = require('../models/CompanieModel');
 const Job = require('../models/jobModel');
-
+const User=require('../models/User')
 const getJobApplications = async (req, res) => {
     const { userId } = req.user;
 
@@ -28,24 +28,49 @@ const getJobApplications = async (req, res) => {
   };
 
 
-const applyForJob = async (req, res) => {
-  const { jobId } = req.params;
-  const { userId } = req.user;
+  const applyForJob = async (req, res) => {
+    const { jobId } = req.params;
+    const { userId } = req.user;
 
-  try {
-    const existingApplication = await ApplyJob.findOne({ jobId, userId });
-    if (existingApplication) {
-      return res.status(400).json({ message: 'You have already applied for this job' });
+    try {
+        // Step 1: Check if the user has added education information
+        const user = await User.findById(userId);
+        if (!user.education || user.education.length === 0) {
+            return res.status(400).json({ message: 'Please add education information to your profile before applying for jobs' });
+        }
+
+        // Step 2: Retrieve the job details and check for required education
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        // Check if the job requires a specific level of education
+        if (job.education !== undefined) {
+            const userEducationSet = new Set(user.education);
+            const jobEducationSet = new Set(job.education);
+            const matchingEducation = [...jobEducationSet].every(education => userEducationSet.has(education));
+            if (!matchingEducation) {
+                return res.status(400).json({ message: 'Your education level does not match the required education for this job' });
+            }
+        }
+
+        // Check if the user has already applied for this job
+        const existingApplication = await ApplyJob.findOne({ jobId, userId });
+        if (existingApplication) {
+            return res.status(400).json({ message: 'You have already applied for this job' });
+        }
+
+        // Create and save the application
+        const apply = new ApplyJob({ jobId, userId });
+        await apply.save();
+
+        res.status(201).json({ message: 'Application submitted successfully', apply });
+    } catch (error) {
+        res.status(400).json({ message: 'Failed to submit application', error: error.message });
     }
-
-    const apply = new ApplyJob({ jobId, userId });
-    await apply.save();
-
-    res.status(201).json({ message: 'Application submitted successfully', apply });
-  } catch (error) {
-    res.status(400).json({ message: 'Failed to submit application', error: error.message });
-  }
 };
+
 
 const changeApplicationStatus = async (req, res) => {
   const { applyId } = req.params;

@@ -16,12 +16,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    // minlength: 6, // Minimum password length
-    // maxlength: 20 // Maximum password length
+
   },
   role: {
     type: String,
-    required: true
+    default:"user"
   },
   profileImg: {
     type: String ,
@@ -29,6 +28,17 @@ const UserSchema = new mongoose.Schema({
   skills: {
     type: [String],
   },
+  education:{
+    type:[String],
+  },
+  resetToken: {
+    type: String,
+    default: null
+},
+resetTokenExpires: {
+    type: Date,
+    default: null
+}
 });
 
 // Static method to compare passwords

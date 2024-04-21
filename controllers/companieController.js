@@ -44,6 +44,11 @@ const createCompany = async (req, res, next) => {
             UserId: req.user.userId
         });
 
+         // Check if a new image was uploaded and update jobImg field
+      if (req.file) {
+        company.logo = req.file.filename;
+      }
+
         // Save the company to the database
         const newCompany = await company.save();
         res.status(201).json(newCompany);

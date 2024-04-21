@@ -32,8 +32,12 @@ const jobSchema = new mongoose.Schema({
     type:Number,
     required:true
   },
-  jobImg: {
-    type: String ,
+  education:{
+    type:[String],
+    required:true
+  },
+  lastDate:{
+    type:Date,
   },
 },
 { timestamps: true }

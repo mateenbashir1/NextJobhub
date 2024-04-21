@@ -44,11 +44,13 @@ const authMiddleware = (req, res, next) => {
     // Verify token
     const payload = jwt.verify(token, 'secret_key');
     req.user = { userId: payload.userId, role: payload.role };
-    console.log('Authenticated user:', req.user);
+    // console.log('Authenticated user:', req.user);
 
     // Check if user is a super admin
     if (req.user.role === 'superadmin') {
       req.isSuperAdmin = true; // Add a flag to indicate super admin
+    } else if (req.user.role === 'admin') {
+      req.isSuperAdmin = false; // Add a flag to indicate non-super admin
     } else if (req.user.role === 'user') {
       req.isSuperAdmin = false; // Add a flag to indicate non-super admin
     } else {

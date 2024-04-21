@@ -30,7 +30,7 @@ const createUser = async (req, res) => {
 // Controller function to update a user
 const updateUser = async (req, res) => {
   const { userId } = req.user;
-  const { username, email, skills } = req.body;
+  const { username, email, skills,education } = req.body;
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -42,6 +42,7 @@ const updateUser = async (req, res) => {
     if (username) user.username = username;
     if (email) user.email = email;
     if (skills) user.skills = skills;
+    if (education) user.education = education;
     if (req.file) user.profileImg = req.file.filename;
     const updatedUser = await user.save();
     res.json(updatedUser);
@@ -73,6 +74,56 @@ const deleteUser = async (req, res) => {
 };
 
 
+const { generateResetToken, sendPasswordResetEmail } = require('../utils/passwordResetUtils');
+
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const resetToken = generateResetToken(user);
+
+        // Send password reset email with the resetToken
+        await sendPasswordResetEmail(user, resetToken);
+
+        res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+        console.error('Error sending password reset email:', error);
+        res.status(500).json({ message: 'Failed to send password reset email' });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    try {
+        // Find user by reset token
+        const user = await User.findOne({ resetToken: token });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Invalid or expired token' });
+        }
+
+        // Update user's password
+        user.password = newPassword;
+        user.resetToken = null;
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({ message: 'Failed to reset password' });
+    }
+};
+
+
+
+
 
 // Middleware function to get a user by ID
 async function getUser(req, res, next) {
@@ -96,5 +147,7 @@ module.exports = {
   updateUser,
   deleteUser,
   getUser,
-  getAllUsers
+  getAllUsers,
+  forgotPassword,
+  resetPassword
 };

@@ -22,5 +22,7 @@ router.delete('/:userId', authMiddleware, userController.deleteUser);
 router.param('id', userController.getUser);
 
 
+router.post('/forgot-password', userController.forgotPassword);
+router.post('/reset-password', userController.resetPassword);
 
 module.exports = router;
