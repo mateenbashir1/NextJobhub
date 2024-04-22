@@ -16,8 +16,8 @@ const getAllUsers = async (req, res) => {
 
 // Controller function to create a user
 const createUser = async (req, res) => {
-  const { username, email, password, role } = req.body;
-  const user = new User({ username, email, password, role });
+  const { username, email, password } = req.body;
+  const user = new User({ username, email, password });
   try {
     const newUser = await user.save();
     const token = User.generateToken(newUser);
