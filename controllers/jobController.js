@@ -3,40 +3,45 @@ const Company = require('../models/CompanieModel');
 
 const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find().populate({
-      path: 'UserId',
-      select: 'username',
-    });
+      const jobs = await Job.find().populate({
+          path: 'UserId',
+          select: 'username',
+      });
 
-    // Extract user IDs from the populated jobs
-    const userIds = jobs.map(job => job.UserId && job.UserId._id);
+      // Extract user IDs from the populated jobs
+      const userIds = jobs.map(job => job.UserId && job.UserId._id);
 
-    // Fetch companies using the user IDs
-    const companies = await Company.find({ UserId: { $in: userIds } });
+      // Fetch companies using the user IDs
+      const companies = await Company.find({ UserId: { $in: userIds } });
 
-    // Create a mapping of user ID to company name
-    const userCompanyMap = {};
-    companies.forEach(company => {
-      userCompanyMap[company.UserId.toString()] = company.name;
-    });
+      // Create a mapping of user ID to company name and logo URL
+      const userCompanyMap = {};
+      companies.forEach(company => {
+          userCompanyMap[company.UserId.toString()] = {
+              name: company.name,
+              logo: company.logo // Assuming you have a field for storing the logo URL in the Company schema
+          };
+      });
+fdgdfgjkfd
+      // Prepare response data with companyName, companyLogoUrl, and username included for each job
+      const responseData = jobs.map(job => ({
+          _id: job._id,
+          title: job.title,
+          description: job.description,
+          salary: job.salary,
+          city: job.city,
+          skills: job.skills,
+          companyName: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].name,
+          companyLogo: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].logo,
+          username: job.UserId && job.UserId.username
+      }));
 
-    // Prepare response data with companyName and username included for each job
-    const responseData = jobs.map(job => ({
-      _id: job._id,
-      title: job.title,
-      description: job.description,
-      salary: job.salary,
-      city: job.city,
-      skills: job.skills,
-      companyName: job.UserId && userCompanyMap[job.UserId._id.toString()],
-      username: job.UserId && job.UserId.username
-    }));
-
-    res.json(responseData);
+      res.json(responseData);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+      res.status(500).json({ message: err.message });
   }
 };
+
 
 // get singal user jobs
 const getUserJobs = async (req, res) => {
