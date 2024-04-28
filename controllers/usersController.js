@@ -13,41 +13,92 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+//gettotallNoJobs for the website
+const gettotallNoUser = async (req, res) => {
+  try {
+    const user = await User.find();
+
+    res.status(200).json({
+      totalUser: user.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 // Controller function to create a user
 const createUser = async (req, res) => {
   const { username, email, password } = req.body;
+  const userDuplicate = await User.findOne({ email: email });
+  if (userDuplicate) {
+      return res.status(404).json({ message: `${email} already taken, please provide another email` });
+  }
   const user = new User({ username, email, password });
   try {
-    const newUser = await user.save();
-    const token = User.generateToken(newUser);
-    res.status(201).json({ newUser, token });
+      const newUser = await user.save();
+      const token = User.generateToken(newUser);
+      res.status(201).json({ email: newUser.email, token });
+  } catch (err) {
+      res.status(400).json({ message: err.message });
+  }
+};
+
+
+// update user
+const updateUser = async (req, res) => {
+  const { userId } = req.user;
+  const { username, email, skills, education, phone,profession, socialMedia } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user._id.toString() !== userId) {
+      return res.status(403).json({ message: 'Unauthorized to update this user profile' });
+    }
+
+    // Update user fields if provided in the request body
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (skills) user.skills = skills;
+    if (education) user.education = education;
+    if (profession) user.profession = profession;
+    if (phone) user.phone = phone;
+    if (socialMedia) user.socialMedia = socialMedia;
+    if (req.file) user.profileImg = req.file.filename;
+
+    // Save the updated user
+    const updatedUser = await user.save();
+
+    // Omit password from the response
+    updatedUser.password = undefined;
+
+    res.json(updatedUser);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-// Controller function to update a user
-const updateUser = async (req, res) => {
-  const { userId } = req.user;
-  const { username, email, skills,education } = req.body;
+// get user by id
+const getUserById = async (req, res) => {
+  const { userId } = req.params;
+
   try {
     const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    if (user._id.toString() !== userId) {
-      return res.status(403).json({ message: 'Unauthorized to update this user profile' });
-    }
-    if (username) user.username = username;
-    if (email) user.email = email;
-    if (skills) user.skills = skills;
-    if (education) user.education = education;
-    if (req.file) user.profileImg = req.file.filename;
-    const updatedUser = await user.save();
-    res.json(updatedUser);
+
+    // Omit password from the response
+    user.password = undefined;
+
+    res.json(user);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
 
@@ -149,5 +200,7 @@ module.exports = {
   getUser,
   getAllUsers,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getUserById,
+  gettotallNoUser
 };

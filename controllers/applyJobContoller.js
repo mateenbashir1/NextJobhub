@@ -1,7 +1,8 @@
 const ApplyJob = require('../models/ApplyJobModel');
 const Company = require('../models/CompanieModel');
 const Job = require('../models/jobModel');
-const User=require('../models/User')
+const User=require('../models/User');
+
 const getJobApplications = async (req, res) => {
     const { userId } = req.user;
 
@@ -72,37 +73,136 @@ const getJobApplications = async (req, res) => {
 };
 
 
+// const changeApplicationStatus = async (req, res) => {
+//   const { applyId } = req.params;
+//   const { newStatus, reason } = req.body;
+//   const { userId } = req.user;
+
+//   try {
+//     const apply = await ApplyJob.findById(applyId);
+//     if (!apply) {
+//       return res.status(404).json({ message: 'Job application not found' });
+//     }
+
+//     const job = await Job.findById(apply.jobId);
+//     if (!job) {
+//       return res.status(404).json({ message: 'Associated job not found' });
+//     }
+
+//     if (job.UserId.toString() !== userId) {
+//       return res.status(403).json({ message: 'You are not authorized to update this application' });
+//     }
+
+//     apply.status = newStatus;
+//     await apply.save();
+
+//     res.status(200).json({ message: 'Application status updated successfully', apply });
+//   } catch (error) {
+//     res.status(400).json({ message: 'Failed to update application status', error: error.message });
+//   }
+// };
+
+// getTotalApplicants for the user
+
+
+
+const nodemailer = require('nodemailer');
+
+
 const changeApplicationStatus = async (req, res) => {
-  const { applyId } = req.params;
-  const { newStatus, reason } = req.body;
-  const { userId } = req.user;
+    const { applyId } = req.params;
+    const { newStatus, reason } = req.body;
+    const { userId } = req.user;
 
+    try {
+        const apply = await ApplyJob.findById(applyId);
+        if (!apply) {
+            return res.status(404).json({ message: 'Job application not found' });
+        }
+
+        const job = await Job.findById(apply.jobId);
+        if (!job) {
+            return res.status(404).json({ message: 'Associated job not found' });
+        }
+
+        if (job.UserId.toString() !== userId) {
+            return res.status(403).json({ message: 'You are not authorized to update this application' });
+        }
+
+        apply.status = newStatus;
+        await apply.save();
+
+        // Send email notification to the applicant
+        const applicant = await User.findById(apply.userId);
+        if (!applicant) {
+            return res.status(404).json({ message: 'Applicant not found' });
+        }
+
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          requireTLS: true,
+          auth: {
+              user: 'mateenbashirm@gmail.com',
+              pass: 'xvlcyysovqjdljul',
+          },
+          tls: {
+              rejectUnauthorized: false // Ignore TLS errors
+          }
+        });
+
+        const mailOptions = {
+            from: 'mateenbashirm@gmail.com',
+            to: applicant.email,
+            subject: 'Application Status Update',
+            text: `Your application for the job "${job.title}" has been "${newStatus}" `
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error occurred while sending email:', error);
+            } else {
+                console.log('Email sent:', info.response);
+            }
+        });
+
+        res.status(200).json({ message: 'Application status updated successfully', apply });
+    } catch (error) {
+        res.status(400).json({ message: 'Failed to update application status', error: error.message });
+    }
+};
+
+
+
+
+
+
+
+
+
+const getTotalApplicants = async (req, res) => {
   try {
-    const apply = await ApplyJob.findById(applyId);
-    if (!apply) {
-      return res.status(404).json({ message: 'Job application not found' });
+    const { userId } = req.user;
+    const userJobs = await Job.find({ UserId: userId });
+
+    let totalApplicants = 0;
+
+    for (const job of userJobs) {
+      totalApplicants += await ApplyJob.countDocuments({ jobId: job._id });
     }
 
-    const job = await Job.findById(apply.jobId);
-    if (!job) {
-      return res.status(404).json({ message: 'Associated job not found' });
-    }
-
-    if (job.UserId.toString() !== userId) {
-      return res.status(403).json({ message: 'You are not authorized to update this application' });
-    }
-
-    apply.status = newStatus;
-    await apply.save();
-
-    res.status(200).json({ message: 'Application status updated successfully', apply });
+    res.status(200).json({ totalApplicants });
   } catch (error) {
-    res.status(400).json({ message: 'Failed to update application status', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch total applicants', error: error.message });
   }
 };
+
+
 
 module.exports = {
   getJobApplications,
   applyForJob,
-  changeApplicationStatus
+  changeApplicationStatus,
+  getTotalApplicants
 };

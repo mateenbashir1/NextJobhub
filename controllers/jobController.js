@@ -22,7 +22,6 @@ const getJobs = async (req, res) => {
               logo: company.logo // Assuming you have a field for storing the logo URL in the Company schema
           };
       });
-fdgdfgjkfd
       // Prepare response data with companyName, companyLogoUrl, and username included for each job
       const responseData = jobs.map(job => ({
           _id: job._id,
@@ -42,6 +41,18 @@ fdgdfgjkfd
   }
 };
 
+
+const gettotallNoJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find();
+
+    res.status(200).json({
+      totalJobs: jobs.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 // get singal user jobs
 const getUserJobs = async (req, res) => {
@@ -280,5 +291,6 @@ const getSuggestedJobs = async (req, res) => {
     filterJobsForSingleUser,
     getAllJobsWithFilters,
     deleteJob,
-    getSuggestedJobs
+    getSuggestedJobs,
+    gettotallNoJobs
   };

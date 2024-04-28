@@ -11,6 +11,19 @@ const getAllCompanies = async (req, res, next) => {
     }
 };
 
+// gettotallNoCompany for website
+const gettotallNoCompany = async (req, res) => {
+    try {
+      const company = await Companie.find();
+
+      res.status(200).json({
+        totalCompany: company.length,
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
 const getCompaniesWithUsers = async (req, res, next) => {
     try {
         const companies = await Companie.find().populate('UserId');
@@ -89,5 +102,6 @@ module.exports = {
     getAllCompanies,
     getCompaniesWithUsers,
     createCompany,
-    updateCompany
+    updateCompany,
+    gettotallNoCompany
 };

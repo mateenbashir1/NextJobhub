@@ -12,6 +12,8 @@ router.get('/suggestedjobs',authMiddleware, jobController.getSuggestedJobs);
 // GET request to fetch user jobs
 router.get('/', jobController.getJobs);
 
+router.get('/gettotallNoJobs', jobController.gettotallNoJobs);
+
 // singal user jobs
 router.get('/get-job', authMiddleware, jobController.getUserJobs);
 

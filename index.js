@@ -20,6 +20,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 //database
 require('./db')();
 
+
+
 app.get("/",(req,res)=>{
     return res.status(200).send({msg:"Welcome to NextJobHub"})
 });
@@ -36,8 +38,11 @@ app.use('/api/job',require('./routes/jobRouter'))
 app.use('/api/companie',require('./routes/companiesRouter'))
 app.use('/api/interview',require('./routes/interviewRouter'));
 app.use('/api/applyJob',require('./routes/applyJobRouter'))
-app.use('/api/sugest',require('./routes/suggestRouter'))
-app.use('/api/sendmail',require('./routes/sendmail'))
+app.use('/api/sugest',require('./routes/suggestRouter'));
+app.use('/api/allWebsiteCount',require('./routes/mainRoutes'));
+app.use('/api/sendmail',require('./routes/sendmail'));
+app.use('/api/saveJob',require('./routes/saveJobRouter'))
+
 
 //validation middelware
 app.use(errorMiddleware);

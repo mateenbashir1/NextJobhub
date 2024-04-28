@@ -1,5 +1,3 @@
-// models/User.js
-
 const mongoose = require('mongoose');
 
 const jobSchema = new mongoose.Schema({
@@ -15,30 +13,39 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  city:{
-    type:String,
-    required:true
+  city: {
+    type: String,
+    required: true
   },
-  worktype:{
-    type:String,
-    enum:['full-time','part-time','internship'],
-    default:'full-time'
+  worktype: {
+    type: String,
+    enum: ['full-time', 'part-time', 'internship'],
+    default: 'full-time'
   },
   skills: [String],
   UserId: {
     type: mongoose.Schema.Types.ObjectId, ref: 'User',
   },
-  seats:{
-    type:Number,
-    required:true
+  seats: {
+    type: Number,
+    required: true
   },
-  education:{
-    type:[String],
-    required:true
+  education: {
+    type: [String],
+    required: true
   },
-  lastDate:{
-    type:Date,
+  deadLine: {
+    type: Date,
   },
+  category: {
+    type: String,
+    required: true
+  },
+  experienceLevel: {
+    type: String,
+    enum: ['internship', '1 year', '3 year', 'Expert'],
+    required: true
+  }
 },
 { timestamps: true }
 );

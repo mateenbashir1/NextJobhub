@@ -8,7 +8,7 @@ router.get('/', authMiddleware, applyJobController.getJobApplications);
 
 // Apply for a job
 router.post('/:jobId', authMiddleware, applyJobController.applyForJob);
-
+router.get('/total-applicants', authMiddleware, applyJobController.getTotalApplicants);
 // Change application status
 router.put('/:applyId/status', authMiddleware, applyJobController.changeApplicationStatus);
 

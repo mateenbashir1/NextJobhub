@@ -16,7 +16,9 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-
+  },
+  profession:{
+   type:String
   },
   role: {
     type: String,
@@ -25,8 +27,16 @@ const UserSchema = new mongoose.Schema({
   profileImg: {
     type: String ,
   },
+  socialMedia: {
+    facebook: String,
+    twitter: String,
+    instagram: String
+  },
   skills: {
     type: [String],
+  },
+  phone: {
+    type: String
   },
   education:{
     type:[String],
@@ -60,7 +70,6 @@ UserSchema.pre('save', async function(next) {
     return next(error);
   }
 });
-const token =
 
 UserSchema.statics.generateToken = function(user) {
   return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '1h' });; // Replace 'your-secret-key' with your actual secret key
