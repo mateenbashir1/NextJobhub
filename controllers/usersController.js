@@ -37,7 +37,7 @@ const createUser = async (req, res) => {
   try {
       const newUser = await user.save();
       const token = User.generateToken(newUser);
-      res.status(201).json({ email: newUser.email, token });
+      res.status(201).json({ userData:{newUser}, token });
   } catch (err) {
       res.status(400).json({ message: err.message });
   }
@@ -47,7 +47,7 @@ const createUser = async (req, res) => {
 // update user
 const updateUser = async (req, res) => {
   const { userId } = req.user;
-  const { username, email, skills, education, phone,profession, socialMedia } = req.body;
+  const { username, email, skills, education, phone,profession, socialMedia,city,dateOfBirth } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -66,8 +66,10 @@ const updateUser = async (req, res) => {
     if (skills) user.skills = skills;
     if (education) user.education = education;
     if (profession) user.profession = profession;
+    if (city) user.city = city;
     if (phone) user.phone = phone;
     if (socialMedia) user.socialMedia = socialMedia;
+    if (dateOfBirth) user.dateOfBirth=dateOfBirth;
     if (req.file) user.profileImg = req.file.filename;
 
     // Save the updated user

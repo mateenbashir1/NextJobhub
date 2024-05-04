@@ -43,7 +43,15 @@ const createCompany = async (req, res, next) => {
         // Check if the provided UserId exists in the User collection
         const userExists = await User.exists({ _id: req.user.userId });
         if (!userExists) {
-            throw new Error("User with the provided UserId not found");
+            res.status(500).json({ message: 'User not found' });
+
+        }
+
+        // Check if the user already has a company
+        const existingCompany = await Companie.findOne({ UserId: req.user.userId });
+        if (existingCompany) {
+            res.status(500).json({ message: 'user has already company' });
+
         }
 
         // Create a new company
@@ -51,24 +59,30 @@ const createCompany = async (req, res, next) => {
             name: req.body.name,
             description: req.body.description,
             industry: req.body.industry,
-            address:req.body.address,
+            address: req.body.address,
             website: req.body.website,
-            SocialMediaLinks: req.body.SocialMediaLinks,
+            socialMediaLinks: req.body.socialMediaLinks,
             UserId: req.user.userId
         });
 
-         // Check if a new image was uploaded and update jobImg field
-      if (req.file) {
-        company.logo = req.file.filename;
-      }
+        // Check if a new image was uploaded and update the logo field
+        if (req.file) {
+            company.logo = req.file.filename;
+        }
 
         // Save the company to the database
         const newCompany = await company.save();
+
+        // // Update the user's role to "admin"
+        // await User.findByIdAndUpdate(req.user.userId, { role: 'admin' });
+
         res.status(201).json(newCompany);
     } catch (error) {
         next(error);
     }
 };
+
+
 
 const updateCompany = async (req, res, next) => {
     const { name, description, industry, website, SocialMediaLinks } = req.body;

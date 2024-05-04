@@ -10,8 +10,14 @@ const jobSchema = new mongoose.Schema({
     required: true,
   },
   salary: {
-    type: Number,
-    required: true
+    min: {
+      type: Number,
+      required: true
+    },
+    max: {
+      type: Number,
+      required: true
+    }
   },
   city: {
     type: String,
@@ -19,8 +25,8 @@ const jobSchema = new mongoose.Schema({
   },
   worktype: {
     type: String,
-    enum: ['full-time', 'part-time', 'internship'],
-    default: 'full-time'
+    enum: ['full-time', 'Part Time'],
+    default: 'Full Time'
   },
   skills: [String],
   UserId: {
@@ -30,10 +36,6 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  education: {
-    type: [String],
-    required: true
-  },
   deadLine: {
     type: Date,
   },
@@ -41,9 +43,13 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  remote: {
+    type: String,
+    enum: ['Yes', 'No'],
+  },
   experienceLevel: {
     type: String,
-    enum: ['internship', '1 year', '3 year', 'Expert'],
+    enum: ['Intern', '1 year', 'Intermediate', 'Expert'],
     required: true
   }
 },

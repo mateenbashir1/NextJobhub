@@ -7,6 +7,7 @@ const getJobApplications = async (req, res) => {
     const { userId } = req.user;
 
     try {
+
       const applications = await ApplyJob.find({ userId }).populate('jobId');
       const responseData = await Promise.all(applications.map(async application => {
         const { status, jobId } = application;
@@ -18,9 +19,10 @@ const getJobApplications = async (req, res) => {
         const companyName = company ? company.name : 'Unknown';
         return { status, jobTitle: title, companyName };
       }));
-
+      console.log(responseData)
       // Filter out null entries
       const filteredData = responseData.filter(data => data !== null);
+
 
       res.status(200).json({ totalApplications: filteredData.length, applications: filteredData });
     } catch (error) {
@@ -36,25 +38,25 @@ const getJobApplications = async (req, res) => {
     try {
         // Step 1: Check if the user has added education information
         const user = await User.findById(userId);
-        if (!user.education || user.education.length === 0) {
-            return res.status(400).json({ message: 'Please add education information to your profile before applying for jobs' });
-        }
+        // if (!user.education || user.education.length === 0) {
+        //     return res.status(400).json({ message: 'Please add education information to your profile before applying for jobs' });
+        // }
 
         // Step 2: Retrieve the job details and check for required education
-        const job = await Job.findById(jobId);
-        if (!job) {
-            return res.status(404).json({ message: 'Job not found' });
-        }
+        // const job = await Job.findById(jobId);
+        // if (!job) {
+        //     return res.status(404).json({ message: 'Job not found' });
+        // }
 
         // Check if the job requires a specific level of education
-        if (job.education !== undefined) {
-            const userEducationSet = new Set(user.education);
-            const jobEducationSet = new Set(job.education);
-            const matchingEducation = [...jobEducationSet].every(education => userEducationSet.has(education));
-            if (!matchingEducation) {
-                return res.status(400).json({ message: 'Your education level does not match the required education for this job' });
-            }
-        }
+        // if (job.education !== undefined) {
+        //     const userEducationSet = new Set(user.education);
+        //     const jobEducationSet = new Set(job.education);
+        //     const matchingEducation = [...jobEducationSet].every(education => userEducationSet.has(education));
+        //     if (!matchingEducation) {
+        //         return res.status(400).json({ message: 'Your education level does not match the required education for this job' });
+        //     }
+        // }
 
         // Check if the user has already applied for this job
         const existingApplication = await ApplyJob.findOne({ jobId, userId });
@@ -151,7 +153,6 @@ const changeApplicationStatus = async (req, res) => {
               rejectUnauthorized: false // Ignore TLS errors
           }
         });
-
         const mailOptions = {
             from: 'mateenbashirm@gmail.com',
             to: applicant.email,
@@ -174,10 +175,39 @@ const changeApplicationStatus = async (req, res) => {
 };
 
 
+const getJobApplicationsByOwner = async (req, res) => {
+  const { userId } = req.user;
 
+  try {
+    // Find all jobs created by the user
+    const userJobs = await Job.find({ UserId: userId });
 
+    // Extract job IDs from the user's jobs
+    const jobIds = userJobs.map((job) => job._id);
 
+    // Find applications for the user's jobs
+    const applications = await ApplyJob.find({ jobId: { $in: jobIds } }).populate('jobId').populate('userId'); // Populate userId
 
+    // Process applications data
+    const responseData = await Promise.all(applications.map(async (application) => {
+      const { status, jobId, userId: applicantId } = application;
+      const { title, UserId } = jobId;
+
+      // Find the user details for the applicant
+      const applicant = await User.findById(applicantId); // Assuming User model exists and holds user details
+      const username = applicant ? applicant.username : 'Unknown';
+
+      return { status, jobTitle: title, username, userId: applicantId }; // Include username in the response
+    }));
+
+    // Filter out null entries
+    const filteredData = responseData.filter((data) => data !== null);
+
+    res.status(200).json({ totalApplications: filteredData.length, applications: filteredData });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch job applications', error: error.message });
+  }
+};
 
 
 
@@ -199,10 +229,41 @@ const getTotalApplicants = async (req, res) => {
 };
 
 
+const getSelectedUsersByJobOwner = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    // Find all jobs created by the user
+    const userJobs = await Job.find({ UserId: userId });
+
+    // Extract job IDs from the user's jobs
+    const jobIds = userJobs.map((job) => job._id);
+
+    // Find applications for the user's jobs where status is 'selected'
+    const selectedApplications = await ApplyJob.find({ jobId: { $in: jobIds }, status: 'selected' }).populate('userId');
+
+    // Process selected applicants data
+    const responseData = selectedApplications.map((application) => {
+      const { userId } = application;
+      const { username, email } = userId; // Assuming User model has username and email fields
+
+      return { userId: userId._id, username, email };
+    });
+
+    res.status(200).json({ selectedUsers: responseData });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch selected users', error: error.message });
+  }
+};
+
+
+
 
 module.exports = {
   getJobApplications,
   applyForJob,
   changeApplicationStatus,
-  getTotalApplicants
+  getTotalApplicants,
+  getJobApplicationsByOwner,
+  getSelectedUsersByJobOwner
 };

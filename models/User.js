@@ -11,7 +11,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    // match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ // Regular expression for email validation
   },
   password: {
     type: String,
@@ -40,6 +39,12 @@ const UserSchema = new mongoose.Schema({
   },
   education:{
     type:[String],
+  },
+  dateOfBirth:{
+    type:Date,
+  },
+  city:{
+    type:String
   },
   resetToken: {
     type: String,
@@ -72,7 +77,7 @@ UserSchema.pre('save', async function(next) {
 });
 
 UserSchema.statics.generateToken = function(user) {
-  return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '1h' });; // Replace 'your-secret-key' with your actual secret key
+  return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '6h' });; // Replace 'your-secret-key' with your actual secret key
 };
 
 module.exports = mongoose.model('User', UserSchema);

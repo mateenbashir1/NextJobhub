@@ -8,6 +8,8 @@ const jobController = require('../controllers/jobController');
 // Route to handle getting suggested jobs
 router.get('/suggestedjobs',authMiddleware, jobController.getSuggestedJobs);
 
+router.get('/getJobsWithExpiredDeadline',authMiddleware, jobController.getJobsWithExpiredDeadline);
+
 
 // GET request to fetch user jobs
 router.get('/', jobController.getJobs);
@@ -17,6 +19,15 @@ router.get('/gettotallNoJobs', jobController.gettotallNoJobs);
 // singal user jobs
 router.get('/get-job', authMiddleware, jobController.getUserJobs);
 
+// Define route for getting all categories
+router.get("/categories", jobController.getAllCategories);
+
+
+// GET a job by ID
+router.get('/:id', jobController.getJobById);
+
+// Route to get jobs by category
+router.get('/:category', jobController.getJobsByCategory);
 
 router.post('/', authMiddleware,  jobController.createJob);
 
