@@ -31,7 +31,7 @@ const CompanieSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, ref: 'User',
     },
     logo:{
-        type:Buffer,
+        type:String,
         required:true
     }
 },

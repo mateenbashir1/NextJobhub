@@ -5,11 +5,19 @@ const authMiddleware = require('../middleware/auth');
 const jobController = require('../controllers/jobController');
 
 
+// getRemoteJobs get
+router.get('/getRemoteJobs', jobController.getRemoteJobs);
+
 // Route to handle getting suggested jobs
 router.get('/suggestedjobs',authMiddleware, jobController.getSuggestedJobs);
 
 router.get('/getJobsWithExpiredDeadline',authMiddleware, jobController.getJobsWithExpiredDeadline);
 
+// getTrendingJobs get
+router.get('/getTrendingJobs', jobController.getTrendingJobs);
+
+// Get all jobs with filters
+router.get('/allJobsFilter', jobController.getAllJobsWithFilters);
 
 // GET request to fetch user jobs
 router.get('/', jobController.getJobs);
@@ -22,7 +30,6 @@ router.get('/get-job', authMiddleware, jobController.getUserJobs);
 // Define route for getting all categories
 router.get("/categories", jobController.getAllCategories);
 
-
 // GET a job by ID
 router.get('/:id', jobController.getJobById);
 
@@ -34,14 +41,8 @@ router.post('/', authMiddleware,  jobController.createJob);
 // Get jobs for a single user with filters
 router.get('/filterjobsSingalUser', authMiddleware, jobController.filterJobsForSingleUser);
 
-// Get all jobs with filters
-router.get('/allJobsFilter', jobController.getAllJobsWithFilters);
-
-
-
 // Update a job
 router.patch('/:id', authMiddleware,  jobController.updateJob);
-
 
 // Delete a job post
 router.delete('/:id', authMiddleware, jobController.deleteJob);

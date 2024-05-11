@@ -7,7 +7,7 @@ const User = require('../models/User');
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, '-password');
-    res.json(users);
+    res.json({totalUser:users.length, users});
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -28,12 +28,12 @@ const gettotallNoUser = async (req, res) => {
 
 // Controller function to create a user
 const createUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password,role } = req.body;
   const userDuplicate = await User.findOne({ email: email });
   if (userDuplicate) {
       return res.status(404).json({ message: `${email} already taken, please provide another email` });
   }
-  const user = new User({ username, email, password });
+  const user = new User({ username, email, password,role });
   try {
       const newUser = await user.save();
       const token = User.generateToken(newUser);

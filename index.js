@@ -10,6 +10,7 @@ const app = express();
 app.use(cors());
 // Body parser middleware
 app.use(express.json());
+// app.use("./public",express.static("public"))
 app.use(express.urlencoded({ extended: false }));
 
 const path = require('path');
@@ -42,7 +43,7 @@ app.use('/api/sugest',require('./routes/suggestRouter'));
 app.use('/api/allWebsiteCount',require('./routes/mainRoutes'));
 app.use('/api/sendmail',require('./routes/sendmail'));
 app.use('/api/saveJob',require('./routes/saveJobRouter'))
-
+app.use('/api/posts',require('./routes/userPostRoutes'))
 
 //validation middelware
 app.use(errorMiddleware);

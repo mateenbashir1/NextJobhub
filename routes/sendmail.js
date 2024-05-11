@@ -3,29 +3,47 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const Job = require('../models/jobModel');
 const User = require('../models/User');
+const Company = require('../models/CompanieModel');
 const authMiddleware = require('../middleware/auth');
 
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        // Extract job details from request body
-        const { title, description, salary, city, seats, skills } = req.body;
+        // Check if the user has a company
+        const company = await Company.findOne({ UserId: req.user.userId });
+        if (!company) {
+            return res.status(403).json({ message: 'You need to create a company before posting a job' });
+        }
 
-        // Save the job to the database
+        // Create a new job
         const job = new Job({
-            title,
-            description,
-            salary,
-            city,
-            seats,
-            skills
+            title: req.body.title,
+            description: req.body.description,
+            salary: {
+                min: req.body.minSalary,
+                max: req.body.maxSalary
+            },
+            city: req.body.city,
+            skills: req.body.skills, // Extract skills from req.body
+            worktype: req.body.workType,
+            seats: req.body.seats,
+            experienceLevel: req.body.experienceLevel,
+            category: req.body.category,
+            deadLine: req.body.deadLine,
+            remote: req.body.remote,
+            UserId: req.user.userId
         });
-        await job.save();
 
-        // Fetch users whose skills match the job's required skills
-        const users = await User.find({ skills: { $in: skills } });
+        // Fetch all users from the database
+        const users = await User.find();
 
-        // Send email notifications to matching users
-        const emailPromises = users.map(async (user) => {
+        // Filter users based on their skills matching the job's required skills
+        const usersWithMatchingSkills = users.filter(user => {
+            // Check if user's skills intersect with the job's required skills
+            return user.skills.some(skill => req.body.skills.includes(skill));
+        });
+
+        // Send email notifications to users with matching skills
+        const emailPromises = usersWithMatchingSkills.map(async (user) => {
             const transporter = nodemailer.createTransport({
                 host: 'smtp.gmail.com',
                 port: 587,
@@ -36,10 +54,9 @@ router.post('/', authMiddleware, async (req, res) => {
                     pass: 'xvlcyysovqjdljul',
                 },
                 tls: {
-                    rejectUnauthorized: false // Ignore TLS errors
+                    rejectUnauthorized: false
                 }
             });
-
             const mailOptions = {
                 from: 'mateenbashirm@gmail.com',
                 to: user.email,
@@ -47,7 +64,6 @@ router.post('/', authMiddleware, async (req, res) => {
                 text: `Hello ${user.username},\n\nA new job has been posted matching your skills. Check it out: ${job.title}\n\nRegards,\nThe Job Portal Team`
             };
 
-            // Send email
             try {
                 await transporter.sendMail(mailOptions);
                 console.log(`Email sent successfully to ${user.email}`);
@@ -56,9 +72,10 @@ router.post('/', authMiddleware, async (req, res) => {
             }
         });
 
+        // Send emails to users with matching skills
         await Promise.all(emailPromises);
-
-        res.status(201).json({ message: 'Job posted successfully' });
+        const newJob = await job.save();
+        res.status(201).json({ message: 'Job posted successfully',newJob });
     } catch (error) {
         console.error('Error posting job:', error);
         res.status(500).json({ message: 'Failed to post job', error: error.message });

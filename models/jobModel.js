@@ -26,7 +26,7 @@ const jobSchema = new mongoose.Schema({
   worktype: {
     type: String,
     enum: ['full-time', 'Part Time'],
-    default: 'Full Time'
+    default: 'full-time'
   },
   skills: [String],
   UserId: {

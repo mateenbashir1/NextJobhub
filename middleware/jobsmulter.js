@@ -4,7 +4,7 @@ const path = require('path');
 // Set up Multer storage destination and file name for job images
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../public/jobimages'));
+    cb(null, path.join(__dirname, './public/jobimages'));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);

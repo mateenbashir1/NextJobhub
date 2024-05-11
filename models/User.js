@@ -21,7 +21,8 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default:"user"
+    enum: ['user', 'admin'],
+    default:'user'
   },
   profileImg: {
     type: String ,
@@ -53,7 +54,13 @@ const UserSchema = new mongoose.Schema({
 resetTokenExpires: {
     type: Date,
     default: null
-}
+},
+ postId: [
+ { type: mongoose.Schema.Types.ObjectId, ref: 'Post',}
+]
+},
+{
+  timestamps:true
 });
 
 // Static method to compare passwords
