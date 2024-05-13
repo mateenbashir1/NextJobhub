@@ -8,7 +8,7 @@ const authMiddleware=require('../middleware/auth')
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // Define the destination folder for uploaded files
-    cb(null, './public');
+    cb(null, './public/userPost');
   },
   filename: function (req, file, cb) {
     // Define the filename for uploaded files
@@ -23,6 +23,8 @@ const upload = multer({ storage: storage });
 
 router.post('/', upload.single('post'),authMiddleware, postController.createPost);
 router.get('/:id',authMiddleware, postController.getPostById);
+
+router.get('/user/:userId', postController.getAllPostsByUserId);
 
 
 module.exports = router;

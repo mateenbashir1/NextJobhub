@@ -54,11 +54,26 @@ const getPostById = async (req, res) => {
   }
 };
 
+// Controller function to handle retrieving all posts by user ID
+const getAllPostsByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Extract user ID from request parameters
 
+    // Retrieve all posts from the database by user ID
+    const posts = await Post.find({ user: userId }).populate('user', 'username profileImg');
+
+    // Respond with the retrieved posts
+    res.status(200).json({ posts });
+  } catch (error) {
+    // If an error occurs, respond with an error message
+    res.status(500).json({ message: 'Failed to retrieve posts', error: error.message });
+  }
+};
 
 
 module.exports =
  {
      createPost,
-     getPostById
+     getPostById,
+     getAllPostsByUserId
  };

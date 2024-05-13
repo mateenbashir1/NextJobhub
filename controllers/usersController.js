@@ -46,7 +46,8 @@ const createUser = async (req, res) => {
 
 // update user
 const updateUser = async (req, res) => {
-  const { userId } = req.user;
+  const  userIds  =  req.user.userId;
+  const { userId } = req.params;
   const { username, email, skills, education, phone,profession, socialMedia,city,dateOfBirth } = req.body;
 
   try {
@@ -56,10 +57,16 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user._id.toString() !== userId) {
+    if (user._id.toString() !== userIds) {
       return res.status(403).json({ message: 'Unauthorized to update this user profile' });
     }
 
+   let profileImg = ''; // Initialize profileImg variable
+
+    // Check if file is uploaded
+    if (req.file) {
+      profileImg = req.file.path.replace('public', ''); // Remove 'public' from the file path
+    }
     // Update user fields if provided in the request body
     if (username) user.username = username;
     if (email) user.email = email;
@@ -70,7 +77,7 @@ const updateUser = async (req, res) => {
     if (phone) user.phone = phone;
     if (socialMedia) user.socialMedia = socialMedia;
     if (dateOfBirth) user.dateOfBirth=dateOfBirth;
-    if (req.file) user.profileImg = req.file.filename;
+    if (profileImg) user.profileImg = profileImg;
 
     // Save the updated user
     const updatedUser = await user.save();

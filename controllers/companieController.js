@@ -85,7 +85,7 @@ const createCompany = async (req, res, next) => {
 
 
 const updateCompany = async (req, res, next) => {
-    const { name, description, industry, website, SocialMediaLinks } = req.body;
+    const { name, description, industry,address, website, socialMediaLinks } = req.body;
     const companyId = req.params.id;
 
     try {
@@ -100,11 +100,28 @@ const updateCompany = async (req, res, next) => {
             throw new Error('Unauthorized to update this company');
         }
 
+        // Update the company data
+        const updatedFields = {
+            name,
+            description,
+            industry,
+            website,
+            socialMediaLinks,
+            address
+        };
+
+        // Check if a new logo file is uploaded
+        if (req.file) {
+            const logo = req.file.path.replace('public', ''); // Remove 'public' from the file path
+            updatedFields.logo = logo;
+        }
+
         // Update the company
-        const updatedCompany = await Companie.findByIdAndUpdate(companyId, req.body, {
-            new: true,
-            runValidators: true,
-        });
+        const updatedCompany = await Companie.findByIdAndUpdate(
+            companyId,
+            updatedFields,
+            { new: true, runValidators: true }
+        );
 
         res.json(updatedCompany);
     } catch (error) {
@@ -199,7 +216,25 @@ const companyDetails = async (req, res, next) => {
 
 
 
+const getLoggedInUserCompany = async (req, res, next) => {
+    const userId = req.user.userId;
 
+    try {
+        // Find the company associated with the logged-in user and populate only specific fields from the user
+        const company = await Companie.findOne({ UserId: userId }).populate({
+            path: 'UserId',
+            select: 'username email phone' // Specify the fields to select
+        });
+
+        if (!company) {
+            return res.status(404).json({ message: 'Company not found for the logged-in user' });
+        }
+
+        res.json(company);
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 module.exports = {
@@ -210,5 +245,6 @@ module.exports = {
     gettotallNoCompany,
     getCompanyById,
     deleteCompany,
-    companyDetails
+    companyDetails,
+    getLoggedInUserCompany
 };

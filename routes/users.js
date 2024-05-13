@@ -15,7 +15,7 @@ router.get('/',userController.getAllUsers);
 router.get('/gettotallNoUser',userController.gettotallNoUser);
 
 // Update a user
-router.patch('/:id', authMiddleware, multerConfig.single('profileImg'), userController.updateUser);
+router.patch('/:userId', authMiddleware, multerConfig.single('profileImg'), userController.updateUser);
 
 // Delete a user
 router.delete('/:userId', authMiddleware, userController.deleteUser);

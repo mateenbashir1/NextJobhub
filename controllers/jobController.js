@@ -37,10 +37,6 @@ const getJobs = async (req, res) => {
       city: job.city,
       skills: job.skills,
       companyLogo: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].logo,
-
-      // companyName: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].name,
-      // companyDetails: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].description,
-
       username: job.UserId && job.UserId.username,
       deadLine: job.deadLine,
       category: job.category,
@@ -153,6 +149,9 @@ const createJob = async (req, res) => {
       return res.status(403).json({ message: 'You need to create a company before posting a job' });
     }
 
+     // Format the deadline date as "5/28/2024"
+     const formattedDeadline = new Date(req.body.deadLine).toLocaleDateString('en-GB');
+
     // Create a new job
     const job = new Job({
       title: req.body.title,
@@ -163,12 +162,12 @@ const createJob = async (req, res) => {
       },
       city: req.body.city,
       skills: req.body.skills,
-      worktype: req.body.workType, // Corrected the casing to match schema
+      worktype: req.body.worktype,
       seats: req.body.seats,
       experienceLevel: req.body.experienceLevel,
       category: req.body.category,
-      deadLine: req.body.deadLine,
-      remote: req.body.remote, // Assuming you also have a 'remote' field in the request body
+      deadLine: formattedDeadline,
+      remote: req.body.remote,
       UserId: req.user.userId
     });
 
@@ -196,7 +195,7 @@ const getAllJobsWithFilters = async (req, res, next) => {
     }
 
     if (city && city !== 'all') {
-      queryObject.city = { $regex: new RegExp(city, 'i') }; // Case-insensitive search for city
+      queryObject.city = { $regex: new RegExp(city, 'i') };
     }
 
     if (minSalary && maxSalary && minSalary !== 'all' && maxSalary !== 'all') {
@@ -204,24 +203,20 @@ const getAllJobsWithFilters = async (req, res, next) => {
       queryObject['salary.max'] = { $lte: maxSalary };
     }
 
-
     if (worktype && worktype !== 'all') {
-      queryObject.worktype = worktype; // Filter by job workType
+      queryObject.worktype = worktype;
     }
 
     if (experienceLevel && experienceLevel !== 'all') {
-      queryObject.experienceLevel = experienceLevel; // Filter by experienceLevel
+      queryObject.experienceLevel = experienceLevel;
     }
 
     let jobs;
 
-    // Check if any query parameters are provided
     if (Object.keys(queryObject).length === 0 && queryObject.constructor === Object) {
-      // If no parameters are provided, fetch all jobs without any filters
-      jobs = await Job.find();
+      jobs = await Job.find().populate('UserId');
     } else {
-      // If parameters are provided, apply filters
-      jobs = await Job.find(queryObject);
+      jobs = await Job.find(queryObject).populate('UserId');
     }
 
     // Sorting
@@ -235,15 +230,50 @@ const getAllJobsWithFilters = async (req, res, next) => {
       jobs = jobs.sort((a, b) => b.title.localeCompare(a.title));
     }
 
-    res.status(200).json({
-      totalJobs: jobs.length,
-      jobs: jobs
+    // Extract user IDs from the populated jobs
+    const userIds = jobs.map(job => job.UserId && job.UserId._id);
+
+    // Fetch companies using the user IDs
+    const companies = await Company.find({ UserId: { $in: userIds } });
+
+    // Create a mapping of user ID to company name and logo URL
+    const userCompanyMap = {};
+    companies.forEach(company => {
+      userCompanyMap[company.UserId.toString()] = {
+        name: company.name,
+        logo: company.logo,
+        description: company.description
+      };
     });
+
+    // Prepare response data with companyName, companyLogoUrl, and username included for each job
+    const responseData = jobs.map(job => ({
+      _id: job._id,
+      title: job.title,
+      description: job.description,
+      salary: {
+        min: job.salary.min,
+        max: job.salary.max
+      },
+      city: job.city,
+      skills: job.skills,
+      companyLogo: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].logo,
+      companyName: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].name,
+      companyDetails: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].description,
+      username: job.UserId && job.UserId.username,
+      deadLine: job.deadLine,
+      category: job.category,
+      worktype: job.worktype,
+      remote: job.remote
+    }));
+
+    res.json({ totalJobs: responseData.length, jobs: responseData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 
 
 
@@ -433,6 +463,8 @@ const getJobById = async (req, res) => {
       deadLine: job.deadLine,
       category: job.category,
       worktype: job.worktype,
+      remote:job.remote,
+      experienceLevel:job.experienceLevel,
       createdAt:job.createdAt
     };
 

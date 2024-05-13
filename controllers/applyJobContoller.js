@@ -59,45 +59,42 @@ const getJobApplications = async (req, res) => {
 
 
 
-  const applyForJob = async (req, res) => {
-    const { jobId } = req.params;
-    const { userId } = req.user;
-    const { email, fullName, phoneNumber, city } = req.body;
+  // const applyForJob = async (req, res) => {
+  //   const { jobId } = req.params;
+  //   const { userId } = req.user;
+  //   const { email, fullName, phoneNumber, city } = req.body;
 
-    try {
-        // Check if the user has added education information
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(400).json({ message: 'User not found' });
-        }
+  //   try {
+  //       const user = await User.findById(userId);
+  //       if (!user) {
+  //           return res.status(400).json({ message: 'User not found' });
+  //       }
 
-        // Check if the user has already applied for this job
-        const existingApplication = await ApplyJob.findOne({ jobId, userId });
-        if (existingApplication) {
-            return res.status(400).json({ message: 'You have already applied for this job' });
-        }
+  //       const existingApplication = await ApplyJob.findOne({ jobId, userId });
+  //       if (existingApplication) {
+  //           return res.status(400).json({ message: 'You have already applied for this job' });
+  //       }
 
-        // Get the path of the uploaded CV and resume video files
-        const cvPath = req.files['cv'][0].path.replace('public', '');
-        const resumeVideoPath = req.files['resumeVideo'][0].path.replace('public', '');
+  //       const cvPath = req.files['cv'][0].path.replace('public', '');
+  //       const resumeVideoPath = req.files['resumeVideo'][0].path.replace('public', '');
 
-        const apply = new ApplyJob({
-            jobId,
-            userId,
-            email,
-            fullName,
-            phoneNumber,
-            city,
-            cv: cvPath,
-            resumeVideo: resumeVideoPath
-        });
-        await apply.save();
+  //       const apply = new ApplyJob({
+  //           jobId,
+  //           userId,
+  //           email,
+  //           fullName,
+  //           phoneNumber,
+  //           city,
+  //           cv: cvPath,
+  //           resumeVideo: resumeVideoPath
+  //       });
+  //       await apply.save();
 
-        res.status(201).json({ message: 'Application submitted successfully', apply });
-    } catch (error) {
-        res.status(400).json({ message: 'Failed to submit application', error: error.message });
-    }
-  };
+  //       res.status(201).json({ message: 'Application submitted successfully', apply });
+  //   } catch (error) {
+  //       res.status(400).json({ message: 'Failed to submit application', error: error.message });
+  //   }
+  // };
 
 
 
@@ -132,6 +129,63 @@ const getJobApplications = async (req, res) => {
 // };
 
 // getTotalApplicants for the user
+
+const applyForJob = async (req, res) => {
+  const { jobId } = req.params;
+  const { userId } = req.user;
+  const { email, fullName, phoneNumber, city } = req.body;
+
+  // Check if all required fields are provided
+  if (!email || !fullName || !phoneNumber || !city || !req.files['cv'] || !req.files['resumeVideo']) {
+      return res.status(400).json({ message: 'Please provide all required information' });
+  }
+
+  // Check if the CV is in PDF format
+  const cvFile = req.files['cv'][0];
+  if (cvFile.mimetype !== 'application/pdf') {
+      return res.status(400).json({ message: 'CV must be in PDF format' });
+  }
+
+  // Check if the resume video is in MP4 format
+  const resumeVideoFile = req.files['resumeVideo'][0];
+  if (resumeVideoFile.mimetype !== 'video/mp4') {
+      return res.status(400).json({ message: 'Resume video must be in MP4 format' });
+  }
+
+  try {
+      // Check if the user has added education information
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(400).json({ message: 'User not found' });
+      }
+
+      // Check if the user has already applied for this job
+      const existingApplication = await ApplyJob.findOne({ jobId, userId });
+      if (existingApplication) {
+          return res.status(400).json({ message: 'You have already applied for this job' });
+      }
+
+      // Get the path of the uploaded CV and resume video files
+      const cvPath = cvFile.path.replace('public', '');
+      const resumeVideoPath = resumeVideoFile.path.replace('public', '');
+
+      const apply = new ApplyJob({
+          jobId,
+          userId,
+          email,
+          fullName,
+          phoneNumber,
+          city,
+          cv: cvPath,
+          resumeVideo: resumeVideoPath
+      });
+      await apply.save();
+
+      res.status(201).json({ message: 'Application submitted successfully', apply });
+  } catch (error) {
+      res.status(400).json({ message: 'Failed to submit application', error: error.message });
+  }
+};
 
 
 
@@ -318,22 +372,48 @@ const getUserJobApplications = async (req, res) => {
 };
 
 const getUserAppyJob = async (req, res) => {
-    const { userId } = req.user;
+  const { userId } = req.user;
 
-    try {
-        // Find all applications for the user
-        const applications = await ApplyJob.find({ userId }).populate('jobId');
+  try {
+      // Find all applications for the user and populate the jobId field
+      const applications = await ApplyJob.find({ userId }).populate('jobId');
 
-        // Extract job details from the applications
-        const appliedJobs = applications.map(application => application.jobId);
+      // Extract job details from the applications
+      const appliedJobs = [];
+      for (const application of applications) {
+          const { jobId } = application;
+          const job = jobId; // Already populated
+          const company = await Company.findOne({ UserId: job.UserId });
 
-        res.status(200).json({ appliedJobs });
-    } catch (error) {
-        res.status(400).json({ message: 'Failed to fetch applied jobs', error: error.message });
-    }
+          if (company) {
+              appliedJobs.push({
+                  job: {
+                      _id: job._id,
+                      title: job.title,
+                      description: job.description,
+                      salary: job.salary,
+                      city: job.city,
+                      skills: job.skills,
+                      deadLine: job.deadLine,
+                      category: job.category,
+                      worktype: job.worktype,
+                      remote: job.remote
+                  },
+                  company: {
+                      name: company.name,
+                      logo: company.logo,
+                      description: company.description
+                  }
+              });
+          }
+      }
 
-
+      res.status(200).json({ appliedJobs });
+  } catch (error) {
+      res.status(400).json({ message: 'Failed to fetch applied jobs', error: error.message });
+  }
 };
+
 
 module.exports = {
   getJobApplications,
