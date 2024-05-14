@@ -102,6 +102,103 @@ const getRemoteJobs = async (req, res) => {
   }
 };
 
+// Controller function to fetch all jobs with filters
+const getAllRemoteJobsWithFilters = async (req, res, next) => {
+  try {
+    const { city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort } = req.query;
+    const queryObject = {};
+
+    if (title && title !== 'all') {
+      queryObject.title = { $regex: new RegExp(`.*${title}.*`, 'i') };
+    }
+
+    if (category && category !== 'all') {
+      queryObject.category = { $regex: new RegExp(category, 'i') };
+    }
+
+    if (city && city !== 'all') {
+      queryObject.city = { $regex: new RegExp(city, 'i') };
+    }
+
+    if (minSalary && maxSalary && minSalary !== 'all' && maxSalary !== 'all') {
+      queryObject['salary.min'] = { $gte: minSalary };
+      queryObject['salary.max'] = { $lte: maxSalary };
+    }
+
+    if (worktype && worktype !== 'all') {
+      queryObject.worktype = worktype;
+    }
+
+    if (experienceLevel && experienceLevel !== 'all') {
+      queryObject.experienceLevel = experienceLevel;
+    }
+
+    // Add filter for remote jobs
+    queryObject.remote = "Yes";
+
+
+    let jobs;
+
+    if (Object.keys(queryObject).length === 0 && queryObject.constructor === Object) {
+      jobs = await Job.find().populate('UserId');
+    } else {
+      jobs = await Job.find(queryObject).populate('UserId');
+    }
+
+    // Sorting
+    if (sort === 'latest') {
+      jobs = jobs.sort((a, b) => b.createdAt - a.createdAt);
+    } else if (sort === 'oldest') {
+      jobs = jobs.sort((a, b) => a.createdAt - b.createdAt);
+    } else if (sort === 'a-z' || sort === 'A-Z') {
+      jobs = jobs.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sort === 'z-a') {
+      jobs = jobs.sort((a, b) => b.title.localeCompare(a.title));
+    }
+
+    // Extract user IDs from the populated jobs
+    const userIds = jobs.map(job => job.UserId && job.UserId._id);
+
+    // Fetch companies using the user IDs
+    const companies = await Company.find({ UserId: { $in: userIds } });
+
+    // Create a mapping of user ID to company name and logo URL
+    const userCompanyMap = {};
+    companies.forEach(company => {
+      userCompanyMap[company.UserId.toString()] = {
+        name: company.name,
+        logo: company.logo,
+        description: company.description
+      };
+    });
+
+    // Prepare response data with companyName, companyLogoUrl, and username included for each job
+    const responseData = jobs.map(job => ({
+      _id: job._id,
+      title: job.title,
+      description: job.description,
+      salary: {
+        min: job.salary.min,
+        max: job.salary.max
+      },
+      city: job.city,
+      skills: job.skills,
+      companyLogo: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].logo,
+      companyName: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].name,
+      companyDetails: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].description,
+      username: job.UserId && job.UserId.username,
+      deadLine: job.deadLine,
+      category: job.category,
+      worktype: job.worktype,
+      remote: job.remote
+    }));
+
+    res.json({ totalJobs: responseData.length, jobs: responseData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
 
 const gettotallNoJobs = async (req, res) => {
   try {
@@ -211,6 +308,10 @@ const getAllJobsWithFilters = async (req, res, next) => {
       queryObject.experienceLevel = experienceLevel;
     }
 
+    // Add filter for remote jobs
+    queryObject.remote = "No";
+
+
     let jobs;
 
     if (Object.keys(queryObject).length === 0 && queryObject.constructor === Object) {
@@ -273,8 +374,6 @@ const getAllJobsWithFilters = async (req, res, next) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
-
-
 
 
 // Controller function to update a job
@@ -475,19 +574,6 @@ const getJobById = async (req, res) => {
 };
 
 
-const getSuggestedJobs = async (req, res) => {
-  try {
-    // Extract user skills from the request (assuming it's available in req.user.skills)
-    const userSkills = req.user.skills; // Assuming user skills are stored in req.user.skills
-        console.log(userSkills)
-    // Query for jobs that require any of the user's skills
-    const suggestedJobs = await Job.find({ skills: { $in: userSkills } });
-
-    res.status(200).json({ suggestedJobs });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch suggested jobs', error: error.message });
-  }
-  };
 
 
 const getJobsWithExpiredDeadline = async (req, res) => {
@@ -525,7 +611,17 @@ const getTrendingJobs = async (req, res) => {
     }
 };
 
+const getAllCities = async (req, res) => {
+  try {
+    // Retrieve all unique cities from the job model
+    const cities = await Job.distinct('city');
 
+    res.status(200).json({ cities });
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
   module.exports = {
@@ -536,12 +632,13 @@ const getTrendingJobs = async (req, res) => {
     filterJobsForSingleUser,
     getAllJobsWithFilters,
     deleteJob,
-    getSuggestedJobs,
     gettotallNoJobs,
     getJobsByCategory,
     getAllCategories,
     getJobById,
     getJobsWithExpiredDeadline,
     getTrendingJobs,
-    getRemoteJobs
+    getRemoteJobs,
+    getAllCities,
+    getAllRemoteJobsWithFilters
   };

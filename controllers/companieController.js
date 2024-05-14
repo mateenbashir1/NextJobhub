@@ -2,6 +2,7 @@ const Companie = require('../models/CompanieModel');
 const User = require('../models/User');
 const Job = require('../models/jobModel')
 const ApplyJob = require('../models/ApplyJobModel');
+const Company =require('../models/CompanieModel')
 
 const getAllCompanies = async (req, res, next) => {
     try {
@@ -236,6 +237,53 @@ const getLoggedInUserCompany = async (req, res, next) => {
     }
 };
 
+const getJobsByCompany = async (req, res, next) => {
+    const companyId = req.params.id;
+    try {
+        // Find the company by ID and populate its details
+        const company = await Company.findById(companyId);
+
+        if (!company) {
+            return res.status(404).json({ message: `Company not found with ID: ${companyId}` });
+        }
+
+        // Find all jobs associated with the user ID of the company
+        const jobs = await Job.find({ UserId: company.UserId }).populate('UserId');
+
+        if (!jobs) {
+            return res.status(404).json({ message: `No jobs found for company with ID: ${companyId}` });
+        }
+
+        // Prepare response data with additional company details for each job
+        const responseData = jobs.map(job => ({
+            _id: job._id,
+            title: job.title,
+            description: job.description,
+            salary: {
+                min: job.salary.min,
+                max: job.salary.max
+            },
+            seats: job.seats,
+            city: job.city,
+            skills: job.skills,
+            companyLogo: company.logo,
+            companyId: company._id, // Add company ID to the response
+            companyName: company.name,
+            companyDetails: company.description,
+            username: job.UserId.username,
+            deadLine: job.deadLine,
+            category: job.category,
+            worktype: job.worktype,
+            remote: job.remote,
+            experienceLevel: job.experienceLevel,
+            createdAt: job.createdAt
+        }));
+
+        res.json(responseData);
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     getAllCompanies,
@@ -246,5 +294,6 @@ module.exports = {
     getCompanyById,
     deleteCompany,
     companyDetails,
-    getLoggedInUserCompany
+    getLoggedInUserCompany,
+    getJobsByCompany
 };

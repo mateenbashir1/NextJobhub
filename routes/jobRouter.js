@@ -7,9 +7,10 @@ const jobController = require('../controllers/jobController');
 
 // getRemoteJobs get
 router.get('/getRemoteJobs', jobController.getRemoteJobs);
+router.get('/getAllRemoteJobsWithFilters', jobController.getAllRemoteJobsWithFilters);
+router.get('/getAllCities', jobController.getAllCities);
 
-// Route to handle getting suggested jobs
-router.get('/suggestedjobs',authMiddleware, jobController.getSuggestedJobs);
+
 
 router.get('/getJobsWithExpiredDeadline',authMiddleware, jobController.getJobsWithExpiredDeadline);
 

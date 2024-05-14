@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/auth');
 const multer=require('multer')
 
 router.get('/loginUserCompany', authMiddleware, companieController.getLoggedInUserCompany);
-
+router.get('/getJobsByCompany/:id', authMiddleware, companieController.getJobsByCompany);
 
 // gettotallNoCompany for website
 router.get('/gettotallNoCompany', companieController.gettotallNoCompany);
