@@ -18,7 +18,7 @@ const loginUser = async (req, res) => {
     }
     const token = User.generateToken(user);
 
-    return res.status(200).json({ message: "User login success", userData :{userId: user._id, user_email: user.email,role:user.role, user_username: user.username,skills:user.skills, profileImg:user.profileImg, token}, statusCode: 200 });
+    return res.status(200).json({ message: "User login success", userData :{userId: user._id, user_email: user.email,role:user.role, user_username: user.username,skills:user.skills,isVerify:user.isVerify, profileImg:user.profileImg, token}, statusCode: 200 });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "An error occurred." });

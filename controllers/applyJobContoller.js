@@ -140,6 +140,9 @@ const applyForJob = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required information' });
   }
 
+  if (userId.isVerify !== true){
+    return res.status(400).json({ message: 'Please verify your email' });
+  }
   // Check if the CV is in PDF format
   const cvFile = req.files['cv'][0];
   if (cvFile.mimetype !== 'application/pdf') {

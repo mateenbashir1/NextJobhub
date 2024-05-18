@@ -25,6 +25,9 @@ router.get('/:userId', userController.getUserById);
 // Middleware function to get a user by ID
 router.param('id', userController.getUser);
 
+router.post('/verification-email', userController.sendVerificationEmail);
+router.post('/verifyEmailOTP', userController.verifyEmailOTP);
+
 
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);

@@ -44,6 +44,8 @@ app.use('/api/allWebsiteCount',require('./routes/mainRoutes'));
 app.use('/api/sendmail',require('./routes/sendmail'));
 app.use('/api/saveJob',require('./routes/saveJobRouter'))
 app.use('/api/posts',require('./routes/userPostRoutes'))
+app.use('/api/hire',require('./routes/hireRouter'))
+
 
 //validation middelware
 app.use(errorMiddleware);

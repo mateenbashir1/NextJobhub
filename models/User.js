@@ -51,9 +51,16 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null
 },
+otp :{
+  type:String,
+},
 resetTokenExpires: {
     type: Date,
     default: null
+},
+isVerify:{
+  type:Boolean,
+  default:false
 },
  postId: [
  { type: mongoose.Schema.Types.ObjectId, ref: 'Post',}

@@ -108,6 +108,9 @@ const getAllRemoteJobsWithFilters = async (req, res, next) => {
     const { city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort } = req.query;
     const queryObject = {};
 
+    const currentDate = new Date(); // Get the current date
+
+    // Adding filters to the queryObject
     if (title && title !== 'all') {
       queryObject.title = { $regex: new RegExp(`.*${title}.*`, 'i') };
     }
@@ -133,9 +136,11 @@ const getAllRemoteJobsWithFilters = async (req, res, next) => {
       queryObject.experienceLevel = experienceLevel;
     }
 
-    // Add filter for remote jobs
+    // Filter to show only remote jobs
     queryObject.remote = "Yes";
 
+    // Filter to exclude expired jobs
+    queryObject.deadLine = { $gte: currentDate };
 
     let jobs;
 
@@ -282,6 +287,7 @@ const getAllJobsWithFilters = async (req, res, next) => {
   try {
     const { city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort } = req.query;
     const queryObject = {};
+    const currentDate = new Date();
 
     if (title && title !== 'all') {
       queryObject.title = { $regex: new RegExp(`.*${title}.*`, 'i') };
@@ -311,6 +317,8 @@ const getAllJobsWithFilters = async (req, res, next) => {
     // Add filter for remote jobs
     queryObject.remote = "No";
 
+    // Add filter to exclude expired jobs
+    queryObject.deadLine = { $gte: currentDate };
 
     let jobs;
 
@@ -374,6 +382,7 @@ const getAllJobsWithFilters = async (req, res, next) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
 
 
 // Controller function to update a job
@@ -457,7 +466,6 @@ const filterJobsForSingleUser = async (req, res) => {
       res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   };
-
 
 
 
@@ -556,6 +564,7 @@ const getJobById = async (req, res) => {
       city: job.city,
       skills: job.skills,
       companyLogo: company ? company.logo : null,
+      companyId: company ? company._id : null,
       companyName: company ? company.name : null,
       companyDetails: company ? company.description : null,
       username: job.UserId.username,
