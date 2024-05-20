@@ -7,11 +7,9 @@ const authMiddleware=require('../middleware/auth')
 // Multer setup for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Define the destination folder for uploaded files
     cb(null, './public/userPost');
   },
   filename: function (req, file, cb) {
-    // Define the filename for uploaded files
     cb(null, file.originalname);
   }
 });
@@ -26,5 +24,7 @@ router.get('/:id',authMiddleware, postController.getPostById);
 
 router.get('/user/:userId', postController.getAllPostsByUserId);
 
+// Route to delete a post by ID
+router.delete('/:id', authMiddleware, postController.deletePost);
 
 module.exports = router;

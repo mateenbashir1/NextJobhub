@@ -285,7 +285,9 @@ const createJob = async (req, res) => {
 // Controller function to fetch all jobs with filters
 const getAllJobsWithFilters = async (req, res, next) => {
   try {
-    const { city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort } = req.query;
+    const {
+      city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort, page = 1, pageSize = 20
+    } = req.query;
     const queryObject = {};
     const currentDate = new Date();
 
@@ -320,13 +322,17 @@ const getAllJobsWithFilters = async (req, res, next) => {
     // Add filter to exclude expired jobs
     queryObject.deadLine = { $gte: currentDate };
 
-    let jobs;
+    // Calculate pagination parameters
+    const skip = (page - 1) * pageSize;
+    const limit = parseInt(pageSize);
 
-    if (Object.keys(queryObject).length === 0 && queryObject.constructor === Object) {
-      jobs = await Job.find().populate('UserId');
-    } else {
-      jobs = await Job.find(queryObject).populate('UserId');
-    }
+    // Fetch the total number of jobs matching the filters
+    const totalJobs = await Job.countDocuments(queryObject);
+
+    let jobs = await Job.find(queryObject)
+      .populate('UserId')
+      .skip(skip)
+      .limit(limit);
 
     // Sorting
     if (sort === 'latest') {
@@ -376,7 +382,12 @@ const getAllJobsWithFilters = async (req, res, next) => {
       remote: job.remote
     }));
 
-    res.json({ totalJobs: responseData.length, jobs: responseData });
+    res.json({
+      totalJobs,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalJobs / pageSize),
+      jobs: responseData
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
