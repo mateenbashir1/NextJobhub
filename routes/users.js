@@ -14,9 +14,34 @@ router.get('/',userController.getAllUsers);
 // gettotallNoUser for website
 router.get('/gettotallNoUser',userController.gettotallNoUser);
 
-// Update a user
-router.patch('/:userId', authMiddleware, multerConfig.single('profileImg'), userController.updateUser);
 
+// Update a user
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        if (file.fieldname === 'profileImg') {
+            cb(null, './public/userimages');
+        } else if (file.fieldname === 'cv') {
+            cb(null, './public/resume');
+        }
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now();
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+
+// Multer upload configuration
+const upload = multer({ storage: storage });
+router.patch(
+    '/:userId',
+    authMiddleware,
+    upload.fields([
+        { name: 'profileImg', maxCount: 1 },
+        { name: 'cv', maxCount: 1 }
+    ]),
+    userController.updateUser
+);
 // Delete a user
 router.delete('/:userId', authMiddleware, userController.deleteUser);
 

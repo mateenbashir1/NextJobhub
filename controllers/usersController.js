@@ -50,47 +50,57 @@ const updateUser = async (req, res) => {
   const { username, email, skills, education, phone, profession, socialMedia, city, dateOfBirth } = req.body;
 
   try {
-      const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user._id.toString() !== userIds) {
+      return res.status(403).json({ message: 'Unauthorized to update this user profile' });
+    }
+
+    let profileImg = '';
+    let cv = '';
+
+    // Check if files are uploaded
+    if (req.files) {
+      if (req.files['profileImg']) {
+        profileImg = req.files['profileImg'][0].path.replace('public', ''); // Remove 'public' from the file path
       }
-
-      if (user._id.toString() !== userIds) {
-          return res.status(403).json({ message: 'Unauthorized to update this user profile' });
+      if (req.files['cv']) {
+        // Check if the CV is in PDF format
+        if (req.files['cv'][0].mimetype !== 'application/pdf') {
+          return res.status(400).json({ message: 'CV must be in PDF format' });
+        }
+        cv = req.files['cv'][0].path.replace('public', ''); // Remove 'public' from the file path
       }
+    }
 
-      let profileImg = ''; // Initialize profileImg variable
+    // Update user fields if provided in the request body
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (skills) user.skills = skills;
+    if (education) user.education = education;
+    if (profession) user.profession = profession;
+    if (city) user.city = city;
+    if (phone) user.phone = phone;
+    if (socialMedia) user.socialMedia = socialMedia;
+    if (dateOfBirth) user.dateOfBirth = new Date(dateOfBirth); // Convert to Date object if necessary
+    if (profileImg) user.profileImg = profileImg;
+    if (cv) user.cv = cv;
 
-      // Check if file is uploaded
-      if (req.file) {
-          profileImg = req.file.path.replace('public', ''); // Remove 'public' from the file path
-      }
+    // Save the updated user
+    const updatedUser = await user.save();
 
-      // Update user fields if provided in the request body
-      if (username) user.username = username;
-      if (email) user.email = email;
-      if (skills) user.skills = skills;
-      if (education) user.education = education;
-      if (profession) user.profession = profession;
-      if (city) user.city = city;
-      if (phone) user.phone = phone;
-      if (socialMedia) user.socialMedia = socialMedia;
-      if (dateOfBirth) user.dateOfBirth = new Date(dateOfBirth); // Convert to Date object if necessary
-      if (profileImg) user.profileImg = profileImg;
+    // Omit password from the response
+    updatedUser.password = undefined;
 
-      // Save the updated user
-      const updatedUser = await user.save();
-
-      // Omit password from the response
-      updatedUser.password = undefined;
-
-      res.json(updatedUser);
+    res.json(updatedUser);
   } catch (err) {
-      res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
-
 
 // get user by id
 const getUserById = async (req, res) => {

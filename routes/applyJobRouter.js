@@ -2,9 +2,8 @@ const express = require('express');
 const router = express.Router();
 const applyJobController = require('../controllers/applyJobContoller');
 const authMiddleware = require('../middleware/auth');
+
 const multer=require('multer')
-
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './public/resume'); // Destination directory for storing files

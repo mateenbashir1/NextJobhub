@@ -16,16 +16,16 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  profession:{
-   type:String
+  profession: {
+    type: String
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
-    default:'user'
+    default: 'user'
   },
   profileImg: {
-    type: String ,
+    type: String,
   },
   socialMedia: {
     facebook: String,
@@ -38,45 +38,49 @@ const UserSchema = new mongoose.Schema({
   phone: {
     type: String
   },
-  education:{
-    type:[String],
+  education: {
+    type: [String],
   },
-  dateOfBirth:{
-    type:Date,
+  dateOfBirth: {
+    type: Date,
   },
-  city:{
-    type:String
+  city: {
+    type: String
   },
   resetToken: {
     type: String,
     default: null
-},
-otp :{
-  type:String,
-},
-resetTokenExpires: {
+  },
+  otp: {
+    type: String,
+  },
+  resetTokenExpires: {
     type: Date,
     default: null
+  },
+  isVerify: {
+    type: Boolean,
+    default: false
+  },
+  postId: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Post', }
+  ],
+  cv: {
+    type: String,
+  },
 },
-isVerify:{
-  type:Boolean,
-  default:false
-},
- postId: [
- { type: mongoose.Schema.Types.ObjectId, ref: 'Post',}
-]
-},
-{
-  timestamps:true
-});
+
+  {
+    timestamps: true
+  });
 
 // Static method to compare passwords
-UserSchema.statics.comparePassword = async function(plainPassword, hashedPassword) {
+UserSchema.statics.comparePassword = async function (plainPassword, hashedPassword) {
   return bcrypt.compare(plainPassword, hashedPassword);
 };
 
 // Pre-save hook to hash the password before saving the user
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -90,7 +94,7 @@ UserSchema.pre('save', async function(next) {
   }
 });
 
-UserSchema.statics.generateToken = function(user) {
+UserSchema.statics.generateToken = function (user) {
   return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '6h' });; // Replace 'your-secret-key' with your actual secret key
 };
 
