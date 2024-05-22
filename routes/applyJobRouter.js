@@ -20,6 +20,7 @@ router.post('/:jobId', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'resu
 
 
 
+
 // Get job applications for a user
 router.get('/', authMiddleware, applyJobController.getJobApplications);
 

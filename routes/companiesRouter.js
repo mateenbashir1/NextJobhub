@@ -7,6 +7,7 @@ const multer=require('multer')
 
 router.get('/loginUserCompany', authMiddleware, companieController.getLoggedInUserCompany);
 router.get('/getJobsByCompany/:id', authMiddleware, companieController.getJobsByCompany);
+router.get('/:userId/company-status', companieController.checkUserCompanyStatus);
 
 // gettotallNoCompany for website
 router.get('/gettotallNoCompany', companieController.gettotallNoCompany);

@@ -2,6 +2,7 @@ const ApplyJob = require('../models/ApplyJobModel');
 const Company = require('../models/CompanieModel');
 const Job = require('../models/jobModel');
 const User=require('../models/User');
+const getVideoDurationInSeconds = require('get-video-duration').getVideoDurationInSeconds;
 
 
 const getJobApplications = async (req, res) => {
@@ -140,9 +141,6 @@ const applyForJob = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required information' });
   }
 
-  if (userId.isVerify !== true){
-    return res.status(400).json({ message: 'Please verify your email' });
-  }
 
   // Check if the CV is in PDF format
   const cvFile = req.files['cv'][0];
@@ -157,11 +155,15 @@ const applyForJob = async (req, res) => {
   }
 
   try {
-      // Check if the user has added education information
-      const user = await User.findById(userId);
+       const user = await User.findById(userId);
       if (!user) {
           return res.status(400).json({ message: 'User not found' });
       }
+  // Check if the user is verified
+  if (!user.isVerify) {
+    return res.status(400).json({ message: 'User is not verified. Please verify your account before applying.' });
+}
+
 
       // Check if the user has already applied for this job
       const existingApplication = await ApplyJob.findOne({ jobId, userId });
@@ -172,6 +174,12 @@ const applyForJob = async (req, res) => {
       // Get the path of the uploaded CV and resume video files
       const cvPath = cvFile.path.replace('public', '');
       const resumeVideoPath = resumeVideoFile.path.replace('public', '');
+
+       // Check the duration of the resume video
+       const duration = await getVideoDurationInSeconds(resumeVideoFile.path);
+       if (duration > 60) { // Duration in seconds
+           return res.status(400).json({ message: 'Resume video must not be longer than one minute' });
+       }
 
       const apply = new ApplyJob({
           jobId,
