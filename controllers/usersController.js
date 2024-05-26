@@ -310,6 +310,31 @@ const verifyEmailOTP = async (req, res, next) => {
   }
 };
 
+// Controller function to get current user's username and profile image
+const getCurrentUserProfile = async (req, res) => {
+  const userId = req.user; // Assuming you have middleware that sets req.user
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prepare response with username and profile image
+    const userProfile = {
+      username: user.username,
+      profileImg: user.profileImg,
+
+    };
+
+    res.json(userProfile);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 
 
 
@@ -324,6 +349,7 @@ module.exports = {
   getUserById,
   gettotallNoUser,
   sendVerificationEmail,
-  verifyEmailOTP
+  verifyEmailOTP,
+  getCurrentUserProfile
 };
 

@@ -102,7 +102,7 @@ UserSchema.pre('save', async function (next) {
 });
 
 UserSchema.statics.generateToken = function (user) {
-  return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '6h' });; // Replace 'your-secret-key' with your actual secret key
+  return jwt.sign({ userId: user._id, role: user.role }, 'secret_key', { expiresIn: '6h' });
 };
 
 module.exports = mongoose.model('User', UserSchema);

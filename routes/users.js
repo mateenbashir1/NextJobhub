@@ -46,6 +46,7 @@ router.patch(
 router.delete('/:userId', authMiddleware, userController.deleteUser);
 
 router.get('/:userId', userController.getUserById);
+router.get('/loginUser', authMiddleware, userController.getCurrentUserProfile);
 
 // Middleware function to get a user by ID
 router.param('id', userController.getUser);

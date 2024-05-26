@@ -251,8 +251,8 @@ const createJob = async (req, res) => {
       return res.status(403).json({ message: 'You need to create a company before posting a job' });
     }
 
-     // Format the deadline date as "5/28/2024"
-     const formattedDeadline = new Date(req.body.deadLine).toLocaleDateString('en-GB');
+    // Format the deadline date
+    const formattedDeadline = new Date(req.body.deadLine);
 
     // Create a new job
     const job = new Job({
