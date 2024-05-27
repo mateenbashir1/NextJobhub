@@ -288,9 +288,8 @@ const getJobsByCompany = async (req, res, next) => {
 // Check if the user has created a company
 const checkUserCompanyStatus = async (req, res, next) => {
     try {
-        const userId = req.params.userId;
+        const { userId } = req.user;
         const company = await Companie.findOne({ UserId: userId });
-
         if (company) {
             res.status(200).json({ hasCreatedCompany: true });
         } else {

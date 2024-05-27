@@ -4,7 +4,8 @@ const moment = require('moment');
 
 const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({remote : 'No'}).populate({
+    const jobs = await Job.find({remote : 'No'})
+    .sort({ createdAt: -1 }).populate({
       path: 'UserId',
       select: 'username',
     });
@@ -52,7 +53,7 @@ const getJobs = async (req, res) => {
 
 const getRemoteJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({remote : 'Yes'}).populate({
+    const jobs = await Job.find({remote : 'Yes'}) .sort({ createdAt: -1 }).populate({
       path: 'UserId',
       select: 'username',
     });
@@ -145,20 +146,9 @@ const getAllRemoteJobsWithFilters = async (req, res, next) => {
     let jobs;
 
     if (Object.keys(queryObject).length === 0 && queryObject.constructor === Object) {
-      jobs = await Job.find().populate('UserId');
+      jobs = await Job.find().sort({ createdAt: -1 }).populate('UserId');
     } else {
       jobs = await Job.find(queryObject).populate('UserId');
-    }
-
-    // Sorting
-    if (sort === 'latest') {
-      jobs = jobs.sort((a, b) => b.createdAt - a.createdAt);
-    } else if (sort === 'oldest') {
-      jobs = jobs.sort((a, b) => a.createdAt - b.createdAt);
-    } else if (sort === 'a-z' || sort === 'A-Z') {
-      jobs = jobs.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sort === 'z-a') {
-      jobs = jobs.sort((a, b) => b.title.localeCompare(a.title));
     }
 
     // Extract user IDs from the populated jobs
@@ -220,7 +210,7 @@ const gettotallNoJobs = async (req, res) => {
 // get singal user jobs
 const getUserJobs = async (req, res) => {
     try {
-      const jobs = await Job.find({ UserId: req.user.userId });
+      const jobs = await Job.find({ UserId: req.user.userId }).sort({ createdAt: -1 });
 
       res.status(200).json({
         totalJobs: jobs.length,
@@ -233,7 +223,7 @@ const getUserJobs = async (req, res) => {
 // categary
 const getAllCategories = async (req, res) => {
     try {
-      const categories = await Job.distinct("category");
+      const categories = await Job.distinct("category").sort({ createdAt: -1 });
       res.status(200).json(categories);
     } catch (error) {
       console.error(error);
@@ -330,20 +320,10 @@ const getAllJobsWithFilters = async (req, res, next) => {
     const totalJobs = await Job.countDocuments(queryObject);
 
     let jobs = await Job.find(queryObject)
+      .sort({ createdAt: -1 })
       .populate('UserId')
       .skip(skip)
       .limit(limit);
-
-    // Sorting
-    if (sort === 'latest') {
-      jobs = jobs.sort((a, b) => b.createdAt - a.createdAt);
-    } else if (sort === 'oldest') {
-      jobs = jobs.sort((a, b) => a.createdAt - b.createdAt);
-    } else if (sort === 'a-z' || sort === 'A-Z') {
-      jobs = jobs.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sort === 'z-a') {
-      jobs = jobs.sort((a, b) => b.title.localeCompare(a.title));
-    }
 
     // Extract user IDs from the populated jobs
     const userIds = jobs.map(job => job.UserId && job.UserId._id);
@@ -616,8 +596,8 @@ const getTrendingJobs = async (req, res) => {
 
       const categoryCounts = {};
       jobs.forEach((job) => {
-        const category = job.category.toLowerCase();
-        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        const title = job.title.toLowerCase();
+        categoryCounts[title] = (categoryCounts[title] || 0) + 1;
       });
 
       const sortedCategories = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);

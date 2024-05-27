@@ -20,7 +20,7 @@ router.get('/', authMiddleware, async (req, res) => {
         const currentDate = new Date();
         const suggestedJobs = await Job.find({
             deadLine: { $gt: currentDate }
-        }).lean();
+        }).sort({ createdAt: -1 }).lean();
 
         const matchedJobs = [];
 
