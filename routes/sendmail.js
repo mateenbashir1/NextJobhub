@@ -11,28 +11,30 @@ router.post('/', authMiddleware, async (req, res) => {
         // Check if the user has a company
         const company = await Company.findOne({ UserId: req.user.userId });
         if (!company) {
-            return res.status(403).json({ message: 'You need to create a company before posting a job' });
+          return res.status(403).json({ message: 'You need to create a company before posting a job' });
         }
+
+        // Format the deadline date
+        const formattedDeadline = new Date(req.body.deadLine);
 
         // Create a new job
         const job = new Job({
-            title: req.body.title,
-            description: req.body.description,
-            salary: {
-                min: req.body.minSalary,
-                max: req.body.maxSalary
-            },
-            city: req.body.city,
-            skills: req.body.skills, // Extract skills from req.body
-            worktype: req.body.workType,
-            seats: req.body.seats,
-            experienceLevel: req.body.experienceLevel,
-            category: req.body.category,
-            deadLine: req.body.deadLine,
-            remote: req.body.remote,
-            UserId: req.user.userId
+          title: req.body.title,
+          description: req.body.description,
+          salary: {
+            min: req.body.minSalary,
+            max: req.body.maxSalary
+          },
+          city: req.body.city,
+          skills: req.body.skills,
+          worktype: req.body.worktype,
+          seats: req.body.seats,
+          experienceLevel: req.body.experienceLevel,
+          category: req.body.category,
+          deadLine: formattedDeadline,
+          remote: req.body.remote,
+          UserId: req.user.userId
         });
-
         // Fetch all users from the database
         const users = await User.find();
 
