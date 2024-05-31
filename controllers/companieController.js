@@ -2,7 +2,7 @@ const Companie = require('../models/CompanieModel');
 const User = require('../models/User');
 const Job = require('../models/jobModel')
 const ApplyJob = require('../models/ApplyJobModel');
-const Company =require('../models/CompanieModel')
+const Company = require('../models/CompanieModel')
 
 const getAllCompanies = async (req, res, next) => {
     try {
@@ -58,7 +58,7 @@ const createCompany = async (req, res, next) => {
         }
 
         const logo = req.file.path.replace('public', ''); // Remove 'public' from the file path
-         console.log(logo)
+        console.log(logo)
         // Create a new company
         const company = new Companie({
             name: req.body.name,
@@ -86,19 +86,19 @@ const createCompany = async (req, res, next) => {
 
 
 const updateCompany = async (req, res, next) => {
-    const { name, description, industry,address, website, socialMediaLinks } = req.body;
+    const { name, description, industry, address, website, socialMediaLinks } = req.body;
     const companyId = req.params.id;
 
     try {
         // Find the company by ID
         const company = await Companie.findById(companyId);
         if (!company) {
-            throw new Error(`No company found with ID: ${companyId}`);
+            res.status(500).json(`No company found with ID: ${companyId}`);
         }
 
         // Check if the current user is authorized to update the company
         if (req.user.userId !== company.UserId.toString()) {
-            throw new Error('Unauthorized to update this company');
+            res.status(500).json('Unauthorized to update this company');
         }
 
         // Update the company data
@@ -151,6 +151,28 @@ const getCompanyById = async (req, res, next) => {
     }
 };
 
+// const deleteCompany = async (req, res, next) => {
+//     const companyId = req.params.id;
+
+//     try {
+//         const company = await Companie.findById(companyId);
+//         if (!company) {
+//             return res.status(404).json({ message: 'No company found with ID' });
+//         }
+
+//         if (req.user.role !== 'superadmin' && req.user.userId !== company.UserId.toString()) {
+//             return res.status(403).json({ message: 'Unauthorized to delete this company' });
+//         }
+
+//         await Companie.findByIdAndDelete(companyId);
+
+//         res.status(200).json({ message: 'Company deleted successfully' });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+
 const deleteCompany = async (req, res, next) => {
     const companyId = req.params.id;
 
@@ -161,18 +183,21 @@ const deleteCompany = async (req, res, next) => {
             return res.status(404).json({ message: 'No company found with ID' });
         }
 
+        // Check if the user is authorized to delete the company
         if (req.user.role !== 'superadmin' && req.user.userId !== company.UserId.toString()) {
             return res.status(403).json({ message: 'Unauthorized to delete this company' });
         }
-
+        // Delete all jobs related to the company
+        await Job.deleteMany({ UserId: company.UserId });
         // Delete the company
         await Companie.findByIdAndDelete(companyId);
 
-        res.status(200).json({ message: 'Company deleted successfully' });
+        res.status(200).json({ message: 'Company and related jobs deleted successfully' });
     } catch (error) {
         next(error);
     }
 };
+
 
 
 
