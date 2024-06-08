@@ -9,6 +9,8 @@ const jobController = require('../controllers/jobController');
 router.get('/getRemoteJobs', jobController.getRemoteJobs);
 router.get('/getAllRemoteJobsWithFilters', jobController.getAllRemoteJobsWithFilters);
 router.get('/getAllCities', jobController.getAllCities);
+router.get('/getJobTitle', jobController.getJobTitle);
+
 
 
 

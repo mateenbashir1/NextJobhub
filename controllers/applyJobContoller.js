@@ -427,6 +427,32 @@ const getUserAppyJob = async (req, res) => {
 };
 
 
+const getApplicationsStatusByOwner = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    // Find all jobs created by the user
+    const userJobs = await Job.find({ UserId: userId });
+
+    // Extract job IDs from the user's jobs
+    const jobIds = userJobs.map((job) => job._id);
+
+    // Find applications for the user's jobs
+    const applications = await ApplyJob.find({ jobId: { $in: jobIds } });
+
+    // Process applications data to return only status
+    const responseData = applications.map((application) => ({
+      status: application.status
+    }));
+
+    res.status(200).json({ totalApplications: responseData.length, applications: responseData });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch job applications status by owner', error: error.message });
+  }
+};
+
+
+
 module.exports = {
   getJobApplications,
   applyForJob,
@@ -436,5 +462,6 @@ module.exports = {
   getSelectedUsersByJobOwner,
   getUserJobApplications,
   getUserAppyJob,
-  getApplicationsByJobOwner
+  getApplicationsByJobOwner,
+  getApplicationsStatusByOwner
 };

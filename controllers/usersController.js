@@ -1,7 +1,9 @@
 
 const User = require('../models/User');
-
-
+const mongoose =require('mongoose');
+const Company=require('../models/CompanieModel');
+const Job =require('../models/jobModel')
+const Post=require('../models/userPostModel');
 
 // Controller function to get all users
 const getAllUsers = async (req, res) => {
@@ -123,22 +125,70 @@ const getUserById = async (req, res) => {
 };
 
 // Controller function to delete a user
+// const deleteUser = async (req, res) => {
+//   const { userId } = req.params;
+//   const requesterId = req.user.userId; // Corrected property name
+//   try {
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     // Check if the user is a super admin or is deleting their own account
+//     if (!req.isSuperAdmin && userId !== requesterId) {
+//       return res.status(403).json({ message: 'Unauthorized: You can only delete your own account' });
+//     }
+
+
+//     await user.deleteOne();
+//     res.json({ message: 'User deleted' });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
 const deleteUser = async (req, res) => {
   const { userId } = req.params;
-  const requesterId = req.user.userId; // Corrected property name
+  const requesterId = req.user.userId;
+
   try {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if the user is a super admin or is deleting their own account
     if (!req.isSuperAdmin && userId !== requesterId) {
       return res.status(403).json({ message: 'Unauthorized: You can only delete your own account' });
     }
 
-    await user.deleteOne();
-    res.json({ message: 'User deleted' });
+    // Start a session and transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete associated company and jobs
+      const deletedCompanies = await Company.deleteMany({ UserId: userId }, { session });
+      const deletedJobs = await Job.deleteMany({ UserId: userId }, { session });
+      const deletedPosts = await Post.deleteMany({ user: userId }, { session });
+
+      console.log('Deleted Companies:', deletedCompanies);
+      console.log('Deleted Jobs:', deletedJobs);
+
+      // Delete the user
+      await user.deleteOne({ session });
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      res.json({ message: 'User and associated data deleted' });
+    } catch (err) {
+      // If any error occurs, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw err;
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

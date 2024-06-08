@@ -60,7 +60,7 @@ const getAllPostsByUserId = async (req, res) => {
     const userId = req.params.userId; // Extract user ID from request parameters
 
     // Retrieve all posts from the database by user ID
-    const posts = await Post.find({ user: userId }).populate('user', 'username profileImg');
+    const posts = await Post.find({ user: userId }).sort({ createdAt: -1 }).populate('user', 'username profileImg');
 
     // Respond with the retrieved posts
     res.status(200).json({ posts });

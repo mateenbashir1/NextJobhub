@@ -33,6 +33,7 @@ router.get('/getUserJobApplications', authMiddleware, applyJobController.getUser
 router.get('/getApplicationsByJobOwner/:applyJobId', authMiddleware, applyJobController.getApplicationsByJobOwner);
 router.get('/jobOwner', authMiddleware, applyJobController.getJobApplicationsByOwner);
 router.get('/selctedUser', authMiddleware, applyJobController.getSelectedUsersByJobOwner);
+router.get('/applications/status', authMiddleware, applyJobController.getApplicationsStatusByOwner);
 
 
 // Apply for a job

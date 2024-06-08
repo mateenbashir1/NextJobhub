@@ -276,8 +276,7 @@ const createJob = async (req, res) => {
 const getAllJobsWithFilters = async (req, res, next) => {
   try {
     const {
-      city, category, title, minSalary, maxSalary, worktype, experienceLevel, sort, page = 1, pageSize = 20
-    } = req.query;
+      city, category, title, minSalary, maxSalary, worktype, experienceLevel, } = req.query;
     const queryObject = {};
     const currentDate = new Date();
 
@@ -312,9 +311,7 @@ const getAllJobsWithFilters = async (req, res, next) => {
     // Add filter to exclude expired jobs
     queryObject.deadLine = { $gte: currentDate };
 
-    // Calculate pagination parameters
-    const skip = (page - 1) * pageSize;
-    const limit = parseInt(pageSize);
+
 
     // Fetch the total number of jobs matching the filters
     const totalJobs = await Job.countDocuments(queryObject);
@@ -322,8 +319,7 @@ const getAllJobsWithFilters = async (req, res, next) => {
     let jobs = await Job.find(queryObject)
       .sort({ createdAt: -1 })
       .populate('UserId')
-      .skip(skip)
-      .limit(limit);
+
 
     // Extract user IDs from the populated jobs
     const userIds = jobs.map(job => job.UserId && job.UserId._id);
@@ -359,13 +355,12 @@ const getAllJobsWithFilters = async (req, res, next) => {
       deadLine: job.deadLine,
       category: job.category,
       worktype: job.worktype,
-      remote: job.remote
+      remote: job.remote,
+      experienceLevel:job.experienceLevel
     }));
 
     res.json({
       totalJobs,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(totalJobs / pageSize),
       jobs: responseData
     });
   } catch (error) {
@@ -588,7 +583,6 @@ const getJobsWithExpiredDeadline = async (req, res) => {
   };
 
 
-
 const getTrendingJobs = async (req, res) => {
   try {
 
@@ -618,7 +612,17 @@ const getAllCities = async (req, res) => {
 
     res.status(200).json({ cities });
   } catch (error) {
-    console.error('Error fetching cities:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getJobTitle = async (req, res) => {
+  try {
+    // Retrieve all unique job title from the job model
+    const title = await Job.distinct('title');
+
+    res.status(200).json({ title });
+  } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -640,5 +644,6 @@ const getAllCities = async (req, res) => {
     getTrendingJobs,
     getRemoteJobs,
     getAllCities,
+    getJobTitle,
     getAllRemoteJobsWithFilters
   };
