@@ -104,6 +104,8 @@ const updateUser = async (req, res) => {
   }
 };
 
+
+
 // get user by id
 const getUserById = async (req, res) => {
   const { userId } = req.params;

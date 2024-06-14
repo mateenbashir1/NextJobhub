@@ -42,23 +42,18 @@ const createCompany = async (req, res, next) => {
         if (!req.user.userId) {
             throw new Error("UserId is required");
         }
-
         // Check if the provided UserId exists in the User collection
         const userExists = await User.exists({ _id: req.user.userId });
         if (!userExists) {
             res.status(500).json({ message: 'User not found' });
-
         }
-
         // Check if the user already has a company
         const existingCompany = await Companie.findOne({ UserId: req.user.userId });
         if (existingCompany) {
             res.status(500).json({ message: 'user has already company' });
 
         }
-
         const logo = req.file.path.replace('public', ''); // Remove 'public' from the file path
-        console.log(logo)
         // Create a new company
         const company = new Companie({
             name: req.body.name,
@@ -70,7 +65,6 @@ const createCompany = async (req, res, next) => {
             UserId: req.user.userId,
             logo
         });
-
 
         // Save the company to the database
         const newCompany = await company.save();
