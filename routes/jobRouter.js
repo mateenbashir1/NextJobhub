@@ -12,6 +12,7 @@ router.get('/getAllCities', jobController.getAllCities);
 router.get('/getJobTitle', jobController.getJobTitle);
 
 
+router.get('/getAllJobs', jobController.getAllJobs);
 
 
 router.get('/getJobsWithExpiredDeadline',authMiddleware, jobController.getJobsWithExpiredDeadline);

@@ -51,6 +51,56 @@ const getJobs = async (req, res) => {
   }
 };
 
+
+const getAllJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find()
+    .sort({ createdAt: -1 }).populate({
+      path: 'UserId',
+      select: 'username',
+    });
+
+    // Extract user IDs from the populated jobs
+    const userIds = jobs.map(job => job.UserId && job.UserId._id);
+
+    // Fetch companies using the user IDs
+    const companies = await Company.find({ UserId: { $in: userIds } });
+
+    // Create a mapping of user ID to company name and logo URL
+    const userCompanyMap = {};
+      companies.forEach(company => {
+      userCompanyMap[company.UserId.toString()] = {
+        name: company.name,
+        logo: company.logo,
+        description:company.description
+      };
+    });
+
+    // Prepare response data with companyName, companyLogoUrl, and username included for each job
+    const responseData = jobs.map(job => ({
+      _id: job._id,
+      title: job.title,
+      description: job.description,
+      salary: {
+        min: job.salary.min,
+        max: job.salary.max
+      },
+      city: job.city,
+      skills: job.skills,
+      companyLogo: job.UserId && userCompanyMap[job.UserId._id.toString()] && userCompanyMap[job.UserId._id.toString()].logo,
+      username: job.UserId && job.UserId.username,
+      deadLine: job.deadLine,
+      category: job.category,
+      worktype: job.worktype,
+      remote:job.remote
+    }));
+
+    res.json({totaljob:responseData.length,responseData});
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const getRemoteJobs = async (req, res) => {
   try {
     const jobs = await Job.find({remote : 'Yes'}) .sort({ createdAt: -1 }).populate({
@@ -645,5 +695,6 @@ const getJobTitle = async (req, res) => {
     getRemoteJobs,
     getAllCities,
     getJobTitle,
-    getAllRemoteJobsWithFilters
+    getAllRemoteJobsWithFilters,
+    getAllJobs
   };
