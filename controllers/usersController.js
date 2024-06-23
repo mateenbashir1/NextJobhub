@@ -39,7 +39,7 @@ const createUser = async (req, res) => {
   try {
     const newUser = await user.save();
     const token = User.generateToken(newUser);
-    res.status(201).json({ userData: { newUser }, token });
+    res.status(201).json({userData :{userId: user._id, user_email: user.email,role:user.role, user_username: user.username,skills:user.skills,isVerify:user.isVerify, profileImg:user.profileImg, token}, token });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
