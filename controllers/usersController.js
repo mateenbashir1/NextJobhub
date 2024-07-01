@@ -174,9 +174,6 @@ const deleteUser = async (req, res) => {
       const deletedJobs = await Job.deleteMany({ UserId: userId }, { session });
       const deletedPosts = await Post.deleteMany({ user: userId }, { session });
 
-      console.log('Deleted Companies:', deletedCompanies);
-      console.log('Deleted Jobs:', deletedJobs);
-
       // Delete the user
       await user.deleteOne({ session });
 

@@ -16,7 +16,12 @@ router.post('/', authMiddleware, async (req, res) => {
 
         // Format the deadline date
         const formattedDeadline = new Date(req.body.deadLine);
+        const currentDate = new Date();
 
+        // Check if the deadline is in the past
+        if (formattedDeadline < currentDate) {
+          return res.status(400).json({ message: 'Deadline must be equal to or greater than the current date' });
+        }
         // Create a new job
         const job = new Job({
           title: req.body.title,
